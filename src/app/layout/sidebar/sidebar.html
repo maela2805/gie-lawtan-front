@@ -1,0 +1,100 @@
+<div class="flex h-full flex-col bg-[#062914] text-[#c2dfcd] border-r border-[#0a3d1d] select-none">
+  <!-- Brand Logo Header -->
+  <div class="flex items-center gap-3 border-b border-[#0a3d1d] px-5 py-4 bg-[#04200f]/60">
+    <div class="grid size-9 shrink-0 place-items-center rounded-lg bg-gradient-to-tr from-emerald-600 to-green-500 text-white shadow-sm">
+      <lucide-icon name="leaf" class="size-5"></lucide-icon>
+    </div>
+    <div class="min-w-0">
+      <div class="flex items-center gap-1.5">
+        <p class="truncate font-display text-base font-bold tracking-tight text-white leading-tight">GIE LAWTAN</p>
+        <span class="size-1.5 rounded-full bg-[#22c55e] animate-pulse"></span>
+      </div>
+      <p class="truncate text-[10.5px] font-medium text-[#86efac] tracking-wide uppercase">ERP Agro-Industriel</p>
+    </div>
+  </div>
+
+  <!-- Navigation Groups -->
+  <nav class="flex-1 space-y-4 overflow-y-auto px-3 py-3.5 custom-scrollbar">
+    @for (groupe of navGroups; track groupe.titre) {
+      <div class="space-y-1">
+        <p class="px-3 text-[10px] font-bold uppercase tracking-wider text-[#5a8b6e]">
+          {{ groupe.titre }}
+        </p>
+
+        <!-- Cas Spécial STOCKS avec SOUS-MENU DÉROULANT PADDY & BOUTON +/- -->
+        @if (groupe.hasPaddyDropdown) {
+          <div class="space-y-1">
+            <!-- Bouton parent accordéon Stock Paddy avec icône + / - -->
+            <button 
+              (click)="togglePaddy()"
+              class="w-full flex items-center justify-between rounded-lg px-3 py-2 text-xs font-medium text-[#c2dfcd] transition-all hover:bg-[#0d3b1f] hover:text-white cursor-pointer group"
+              [class.bg-[#0a351a]]="isPaddyOpen"
+            >
+              <div class="flex items-center gap-2.5">
+                <lucide-icon name="wheat" class="size-4 shrink-0 text-[#86efac] group-hover:text-[#22c55e] transition-colors"></lucide-icon>
+                <span class="font-bold text-white">Stock Paddy</span>
+              </div>
+              
+              <!-- Badge Icône [+] / [-] interactif -->
+              <span class="grid size-5 place-items-center rounded bg-[#0e4323] text-[#86efac] group-hover:bg-[#22c55e] group-hover:text-[#062914] transition-colors shadow-xs">
+                <lucide-icon [name]="isPaddyOpen ? 'minus' : 'plus'" class="size-3 stroke-[2.5]"></lucide-icon>
+              </span>
+            </button>
+
+            <!-- Sous-items déroulants -->
+            @if (isPaddyOpen) {
+              <div class="pl-5 pr-1 space-y-1 border-l-2 border-[#0e4323] ml-4 py-1 animate-in slide-in-from-top-1">
+                <a
+                  routerLink="/stocks/paddy"
+                  [queryParams]="{ tab: 'clients' }"
+                  routerLinkActive="!bg-[#0e4323] !text-white !font-bold !border !border-[#22c55e]"
+                  [routerLinkActiveOptions]="{ exact: false }"
+                  class="flex items-center gap-2 rounded-md px-2.5 py-1.5 text-[11.5px] text-[#c2dfcd] hover:bg-[#0d3b1f] hover:text-white transition-colors cursor-pointer border border-transparent"
+                >
+                  <span class="size-1.5 rounded-full bg-[#22c55e]"></span>
+                  <span class="truncate">Stock Paddy Clients</span>
+                </a>
+                <a
+                  routerLink="/stocks/paddy"
+                  [queryParams]="{ tab: 'lawtan' }"
+                  routerLinkActive="!bg-[#0e4323] !text-white !font-bold !border !border-[#22c55e]"
+                  [routerLinkActiveOptions]="{ exact: false }"
+                  class="flex items-center gap-2 rounded-md px-2.5 py-1.5 text-[11.5px] text-[#c2dfcd] hover:bg-[#0d3b1f] hover:text-white transition-colors cursor-pointer border border-transparent"
+                >
+                  <span class="size-1.5 rounded-full bg-amber-400"></span>
+                  <span class="truncate">Stock Paddy Lawtan</span>
+                </a>
+              </div>
+            }
+          </div>
+        }
+
+        <!-- Items standards -->
+        <ul class="space-y-1">
+          @for (item of groupe.items; track item.to) {
+            <li>
+              <a
+                [routerLink]="item.to"
+                routerLinkActive="!bg-[#0e4323] !text-white !font-bold !border !border-[#22c55e] shadow-xs active-nav-link"
+                [routerLinkActiveOptions]="{exact: item.to === '/'}"
+                class="group flex items-center gap-2.5 rounded-lg px-3 py-2 text-xs font-medium text-[#c2dfcd] transition-colors hover:bg-[#0d3b1f] hover:text-white cursor-pointer border border-transparent"
+              >
+                <lucide-icon [name]="item.icon" class="size-4 shrink-0 text-[#86efac] group-hover:text-[#22c55e] transition-colors"></lucide-icon>
+                <span class="truncate">{{ item.label }}</span>
+              </a>
+            </li>
+          }
+        </ul>
+      </div>
+    }
+  </nav>
+
+  <!-- Footer Info -->
+  <div class="border-t border-[#0a3d1d] p-3.5 bg-[#04200f]/60 flex items-center justify-between text-[11px] text-[#7da88d]">
+    <div class="flex items-center gap-2">
+      <span class="size-1.5 rounded-full bg-[#22c55e]"></span>
+      <span class="font-medium text-[#c2dfcd]">Saison 2026</span>
+    </div>
+    <span class="px-2 py-0.5 rounded-md bg-[#0a3d1d] text-[10px] font-mono text-[#86efac] font-bold">v2.4</span>
+  </div>
+</div>

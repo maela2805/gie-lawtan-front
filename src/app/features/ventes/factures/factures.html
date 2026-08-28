@@ -1,0 +1,567 @@
+<div class="space-y-6 max-w-7xl mx-auto p-6 relative">
+  <!-- Toast Notification -->
+  <div *ngIf="toastMessage" class="fixed top-5 right-5 z-50 bg-green-800 text-white text-xs font-semibold px-4 py-3 rounded-lg shadow-xl flex items-center gap-2 border border-green-600 animate-in fade-in slide-in-from-top-4">
+    <lucide-icon name="check-circle-2" class="size-4 text-green-300"></lucide-icon>
+    <span>{{ toastMessage }}</span>
+  </div>
+
+  <!-- Header -->
+  <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+    <div>
+      <h1 class="text-3xl font-bold tracking-tight text-gray-900">Facturation & Règlements par Tranches</h1>
+      <p class="text-xs text-gray-500">Émission des factures, suivi des tranches de paiement (échelonnés) et encaissements caisse.</p>
+    </div>
+    <button (click)="openCreateModal()" class="inline-flex items-center justify-center rounded-lg text-sm font-medium bg-green-700 text-white hover:bg-green-800 h-10 px-4 py-2 gap-2 shadow-sm transition-colors cursor-pointer">
+      <lucide-icon name="plus" class="size-4"></lucide-icon>
+      Émettre une Facture
+    </button>
+  </div>
+
+  <!-- KPI Cards -->
+  <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+    <div class="rounded-xl border bg-white text-gray-900 shadow-sm p-5">
+      <div class="flex items-center justify-between pb-2">
+        <span class="text-sm font-medium text-gray-500">Total Facturé</span>
+        <span class="p-2 rounded-lg bg-gray-100 text-gray-700">
+          <lucide-icon name="file-text" class="size-4"></lucide-icon>
+        </span>
+      </div>
+      <div class="text-2xl font-bold text-gray-900">{{ formatMoney(totalFacture) }}</div>
+      <p class="text-xs text-gray-500 mt-1">{{ factures.length }} facture(s) émise(s)</p>
+    </div>
+
+    <div class="rounded-xl border bg-white text-gray-900 shadow-sm p-5 relative overflow-hidden">
+      <div class="absolute inset-x-0 bottom-0 h-1 bg-green-600"></div>
+      <div class="flex items-center justify-between pb-2">
+        <span class="text-sm font-medium text-gray-500">Total Encaissé (Tranches)</span>
+        <span class="p-2 rounded-lg bg-green-50 text-green-700">
+          <lucide-icon name="check-circle-2" class="size-4"></lucide-icon>
+        </span>
+      </div>
+      <div class="text-2xl font-bold text-green-700">{{ formatMoney(totalEncaisse) }}</div>
+      <p class="text-xs text-gray-500 mt-1">Versements perçus en caisse</p>
+    </div>
+
+    <div class="rounded-xl border bg-white text-gray-900 shadow-sm p-5 relative overflow-hidden">
+      <div class="absolute inset-x-0 bottom-0 h-1 bg-amber-500"></div>
+      <div class="flex items-center justify-between pb-2">
+        <span class="text-sm font-medium text-gray-500">Reste à Recouvrer</span>
+        <span class="p-2 rounded-lg bg-amber-50 text-amber-600">
+          <lucide-icon name="clock" class="size-4"></lucide-icon>
+        </span>
+      </div>
+      <div class="text-2xl font-bold text-amber-600">{{ formatMoney(totalReste) }}</div>
+      <p class="text-xs text-gray-500 mt-1">Créances en cours de paiement</p>
+    </div>
+
+    <div class="rounded-xl border bg-white text-gray-900 shadow-sm p-5 relative overflow-hidden">
+      <div class="absolute inset-x-0 bottom-0 h-1 bg-blue-600"></div>
+      <div class="flex items-center justify-between pb-2">
+        <span class="text-sm font-medium text-gray-500">Taux de Recouvrement</span>
+        <span class="p-2 rounded-lg bg-blue-50 text-blue-600">
+          <lucide-icon name="wallet" class="size-4"></lucide-icon>
+        </span>
+      </div>
+      <div class="text-2xl font-bold text-blue-600">{{ tauxRecouvrement }} %</div>
+      
+      <!-- Progress mini-bar -->
+      <div class="w-full bg-gray-100 rounded-full h-1.5 mt-2 overflow-hidden">
+        <div class="bg-blue-600 h-1.5 rounded-full transition-all duration-500" [style.width.%]="tauxRecouvrement"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Filters & Search -->
+  <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 bg-white p-4 rounded-xl border border-gray-200 shadow-xs">
+    <div class="flex items-center gap-2 overflow-x-auto">
+      <button 
+        *ngFor="let s of statuts" 
+        (click)="selectedStatut = s; currentPage = 1" 
+        [class]="selectedStatut === s ? 'bg-green-700 text-white font-semibold' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'"
+        class="px-3 py-1.5 rounded-lg text-xs transition-colors shrink-0 cursor-pointer">
+        {{ s }}
+      </button>
+    </div>
+    <div class="relative w-full sm:w-64">
+      <input 
+        type="text" 
+        [(ngModel)]="searchTerm" 
+        (input)="currentPage = 1"
+        placeholder="Rechercher par référence, client..." 
+        class="w-full h-9 pl-9 pr-3 text-xs rounded-lg border border-gray-200 focus:outline-none focus:ring-1 focus:ring-green-600">
+      <lucide-icon name="search" class="size-4 text-gray-400 absolute left-3 top-2.5"></lucide-icon>
+    </div>
+  </div>
+
+  <!-- Table des Factures -->
+  <div class="rounded-xl border border-gray-200 bg-white text-gray-900 shadow-sm overflow-hidden">
+    <div *ngIf="isLoading" class="py-12 text-center text-gray-500 text-xs">Chargement des factures et créances...</div>
+
+    <div *ngIf="!isLoading" class="overflow-x-auto">
+      <table class="w-full caption-bottom text-xs">
+        <thead class="bg-gray-50/80 border-b border-gray-200">
+          <tr class="text-left font-semibold uppercase tracking-wider text-gray-500">
+            <th class="py-3 px-4">Référence</th>
+            <th class="py-3 px-4">Date</th>
+            <th class="py-3 px-4">Client / Producteur</th>
+            <th class="py-3 px-4 text-right">Montant Total</th>
+            <th class="py-3 px-4 text-right">Déjà Réglé</th>
+            <th class="py-3 px-4 text-right">Solde Dû</th>
+            <th class="py-3 px-4 text-center">Statut / Règlements</th>
+            <th class="py-3 px-4 text-center">Actions</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-gray-100">
+          <tr *ngFor="let f of paginatedFactures" (click)="viewDetails(f)" class="hover:bg-gray-50/60 transition-colors cursor-pointer">
+            <td class="py-3.5 px-4 font-mono font-bold text-gray-900">
+              <span class="px-2 py-1 bg-gray-100 rounded text-gray-800">{{ f.reference }}</span>
+            </td>
+            <td class="py-3.5 px-4 text-gray-600">{{ f.date }}</td>
+            <td class="py-3.5 px-4 font-semibold text-gray-800">
+              <div>{{ f.clientNom }}</div>
+              <div *ngIf="f.typePrestation" class="text-[11px] text-gray-400 font-normal">{{ f.typePrestation }}</div>
+            </td>
+            <td class="py-3.5 px-4 text-right font-mono font-bold text-gray-900">
+              {{ formatMoney(f.montantTotal || 0) }}
+            </td>
+            <td class="py-3.5 px-4 text-right font-mono font-semibold text-emerald-700">
+              {{ formatMoney(f.montantPaye || 0) }}
+              <div *ngIf="f.paiements?.length > 0" class="text-[10px] text-gray-400 font-normal">
+                ({{ f.paiements.length }} tranche(s))
+              </div>
+            </td>
+            <td class="py-3.5 px-4 text-right font-mono font-bold" [class.text-rose-600]="getResteDu(f) > 0" [class.text-gray-400]="getResteDu(f) <= 0">
+              {{ formatMoney(getResteDu(f)) }}
+            </td>
+            <td class="py-3.5 px-4 text-center">
+              <div class="inline-flex items-center gap-1.5">
+                <span *ngIf="f.statut === 'Payée'" class="inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-emerald-100 text-emerald-800">
+                  ✓ Payée
+                </span>
+                <span *ngIf="f.statut === 'Partiellement payée'" class="inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-amber-100 text-amber-800">
+                  ⏳ Partielle ({{ getProgressPercent(f) }}%)
+                </span>
+                <span *ngIf="f.statut === 'Émise'" class="inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-blue-100 text-blue-800">
+                  📄 Non payée
+                </span>
+              </div>
+            </td>
+            <td class="py-3.5 px-4 text-center" (click)="$event.stopPropagation()">
+              <div class="flex items-center justify-center gap-1.5">
+                <!-- Bouton Voir Détails -->
+                <button 
+                  (click)="viewDetails(f)" 
+                  title="Voir les détails et tranches de la facture"
+                  class="p-1.5 rounded-lg border border-gray-200 bg-white hover:bg-gray-100 text-gray-700 transition-colors cursor-pointer">
+                  <lucide-icon name="eye" class="size-3.5"></lucide-icon>
+                </button>
+
+                <!-- Bouton Payer Tranche -->
+                <button 
+                  (click)="openPayment(f, $event)" 
+                  [disabled]="getResteDu(f) <= 0"
+                  [class]="getResteDu(f) > 0 ? 'bg-emerald-700 text-white hover:bg-emerald-800' : 'bg-gray-100 text-gray-400 cursor-not-allowed'"
+                  class="px-2.5 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1 transition-colors cursor-pointer shadow-2xs">
+                  <lucide-icon name="credit-card" class="size-3.5"></lucide-icon>
+                  <span>{{ getResteDu(f) > 0 ? 'Encaisser' : 'Soldée' }}</span>
+                </button>
+              </div>
+            </td>
+          </tr>
+          <tr *ngIf="filteredFactures.length === 0">
+            <td colspan="8" class="py-8 text-center text-xs text-gray-400">
+              Aucune facture trouvée correspondant aux critères.
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <app-pagination 
+      [totalItems]="filteredFactures.length" 
+      [pageSize]="pageSize" 
+      [currentPage]="currentPage" 
+      (pageChange)="currentPage = $event" 
+      (pageSizeChange)="pageSize = $event">
+    </app-pagination>
+  </div>
+
+  <!-- MODAL 1 : DÉTAILS DE LA FACTURE & HISTORIQUE DES TRANCHES -->
+  <div *ngIf="openDetailsModal && selectedFacture" class="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl shadow-2xl w-full max-w-2xl overflow-hidden flex flex-col max-h-[90vh] animate-in fade-in zoom-in-95">
+      
+      <!-- Modal Header -->
+      <div class="p-5 border-b border-gray-200 bg-gray-50 flex items-center justify-between">
+        <div>
+          <div class="flex items-center gap-2">
+            <h2 class="text-lg font-bold text-gray-900">Facture N° {{ selectedFacture.reference }}</h2>
+            <span *ngIf="selectedFacture.statut === 'Payée'" class="px-2 py-0.5 rounded text-[11px] font-bold bg-emerald-100 text-emerald-800">
+              Payée
+            </span>
+            <span *ngIf="selectedFacture.statut === 'Partiellement payée'" class="px-2 py-0.5 rounded text-[11px] font-bold bg-amber-100 text-amber-800">
+              Partiellement payée
+            </span>
+            <span *ngIf="selectedFacture.statut === 'Émise'" class="px-2 py-0.5 rounded text-[11px] font-bold bg-blue-100 text-blue-800">
+              Non payée
+            </span>
+          </div>
+          <p class="text-xs text-gray-500 mt-0.5">Émise le {{ selectedFacture.date }} pour {{ selectedFacture.clientNom }}</p>
+        </div>
+
+        <button (click)="openDetailsModal = false" class="p-1.5 rounded-lg hover:bg-gray-200 text-gray-500 transition-colors cursor-pointer">
+          <lucide-icon name="x" class="size-5"></lucide-icon>
+        </button>
+      </div>
+
+      <!-- Modal Body -->
+      <div class="p-5 space-y-5 overflow-y-auto">
+        
+        <!-- Financial Summary Grid -->
+        <div class="grid grid-cols-3 gap-3">
+          <div class="p-3 bg-gray-50 rounded-xl border border-gray-200">
+            <div class="text-[11px] font-medium text-gray-500">Montant Total Facturé</div>
+            <div class="text-base font-bold text-gray-900 mt-0.5">{{ formatMoney(selectedFacture.montantTotal || 0) }}</div>
+          </div>
+          <div class="p-3 bg-emerald-50/60 rounded-xl border border-emerald-200">
+            <div class="text-[11px] font-medium text-emerald-800">Total Déjà Réglé</div>
+            <div class="text-base font-bold text-emerald-700 mt-0.5">{{ formatMoney(selectedFacture.montantPaye || 0) }}</div>
+          </div>
+          <div class="p-3 bg-rose-50/60 rounded-xl border border-rose-200">
+            <div class="text-[11px] font-medium text-rose-800">Reste à Payer (Solde)</div>
+            <div class="text-base font-bold text-rose-700 mt-0.5">{{ formatMoney(getResteDu(selectedFacture)) }}</div>
+          </div>
+        </div>
+
+        <!-- Recouvrement progress bar -->
+        <div class="space-y-1">
+          <div class="flex justify-between text-xs font-semibold text-gray-700">
+            <span>Progression du règlement</span>
+            <span>{{ getProgressPercent(selectedFacture) }}% payé</span>
+          </div>
+          <div class="w-full bg-gray-200 rounded-full h-2 overflow-hidden">
+            <div class="bg-emerald-600 h-2 rounded-full transition-all" [style.width.%]="getProgressPercent(selectedFacture)"></div>
+          </div>
+        </div>
+
+        <!-- Facture Details (Prestation, OF) -->
+        <div class="p-3.5 bg-gray-50 rounded-xl border border-gray-200 space-y-2 text-xs">
+          <div class="font-bold text-gray-900 flex items-center justify-between">
+            <span>Informations de facturation</span>
+            <span class="text-gray-500 font-normal" *ngIf="selectedFacture.referenceOF">OF Lié: <strong class="font-mono text-gray-800">{{ selectedFacture.referenceOF }}</strong></span>
+          </div>
+          <div class="grid grid-cols-2 gap-2 text-gray-700">
+            <div><span class="text-gray-500">Nature :</span> <strong>{{ selectedFacture.typePrestation || 'Prestation / Vente' }}</strong></div>
+            <div><span class="text-gray-500">Client :</span> <strong>{{ selectedFacture.clientNom }}</strong></div>
+          </div>
+          <div *ngIf="selectedFacture.observations" class="text-gray-600 text-[11px] pt-1 border-t border-gray-200">
+            <em>Note : {{ selectedFacture.observations }}</em>
+          </div>
+        </div>
+
+        <!-- HISTORIQUE DES TRANCHES DE PAIEMENT -->
+        <div class="space-y-2.5">
+          <div class="flex items-center justify-between">
+            <h3 class="text-xs font-bold text-gray-900 uppercase tracking-wider flex items-center gap-1.5">
+              <lucide-icon name="receipt" class="size-4 text-emerald-700"></lucide-icon>
+              Historique des Versements / Tranches perçues
+            </h3>
+            <span class="text-xs text-gray-500 font-medium">
+              {{ (selectedFacture.paiements?.length || 0) }} versement(s)
+            </span>
+          </div>
+
+          <!-- Table of Installments -->
+          <div class="rounded-lg border border-gray-200 overflow-hidden bg-white">
+            <table class="w-full text-xs">
+              <thead class="bg-gray-50/80 border-b border-gray-200">
+                <tr class="text-left font-semibold text-gray-500">
+                  <th class="py-2.5 px-3">Date</th>
+                  <th class="py-2.5 px-3">Reçu / Réf</th>
+                  <th class="py-2.5 px-3">Mode</th>
+                  <th class="py-2.5 px-3 text-right">Montant Versé</th>
+                  <th class="py-2.5 px-3">Caisse / Compte</th>
+                  <th class="py-2.5 px-3">Agent</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-gray-100">
+                <tr *ngFor="let p of selectedFacture.paiements" class="hover:bg-gray-50/50">
+                  <td class="py-2.5 px-3 font-mono text-gray-700">{{ p.date }}</td>
+                  <td class="py-2.5 px-3 font-mono font-semibold text-gray-900">{{ p.referenceRecu }}</td>
+                  <td class="py-2.5 px-3">
+                    <span class="px-2 py-0.5 rounded bg-gray-100 text-gray-800 text-[10.5px] font-medium">
+                      {{ p.mode }}
+                    </span>
+                  </td>
+                  <td class="py-2.5 px-3 text-right font-mono font-bold text-emerald-700">
+                    +{{ formatMoney(p.montant) }}
+                  </td>
+                  <td class="py-2.5 px-3 text-gray-600">{{ p.compteCaisse }}</td>
+                  <td class="py-2.5 px-3 text-gray-500">{{ p.agent }}</td>
+                </tr>
+                <tr *ngIf="!selectedFacture.paiements || selectedFacture.paiements.length === 0">
+                  <td colspan="6" class="py-6 text-center text-xs text-gray-400 italic">
+                    Aucun versement enregistré pour le moment. La facture est en attente de premier paiement.
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- Modal Footer Actions -->
+      <div class="p-4 border-t border-gray-200 bg-gray-50 flex items-center justify-between">
+        <button 
+          (click)="imprimerFacture()" 
+          class="px-3.5 py-2 rounded-lg text-xs font-semibold border border-gray-200 bg-white hover:bg-gray-100 text-gray-700 flex items-center gap-1.5 transition-colors cursor-pointer shadow-2xs">
+          <lucide-icon name="printer" class="size-3.5"></lucide-icon>
+          <span>Imprimer la Facture</span>
+        </button>
+
+        <div class="flex items-center gap-2">
+          <button (click)="openDetailsModal = false" class="px-4 py-2 rounded-lg text-xs font-medium border border-gray-200 hover:bg-gray-100 cursor-pointer">
+            Fermer
+          </button>
+          <button 
+            *ngIf="getResteDu(selectedFacture) > 0"
+            (click)="openDetailsModal = false; openPayment(selectedFacture)" 
+            class="px-4 py-2 rounded-lg text-xs font-bold bg-emerald-700 text-white hover:bg-emerald-800 flex items-center gap-1.5 cursor-pointer shadow-sm">
+            <lucide-icon name="credit-card" class="size-3.5"></lucide-icon>
+            <span>Encaisser une Tranche ({{ formatMoney(getResteDu(selectedFacture)) }})</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL 2 : ENREGISTRER UN PAIEMENT PAR TRANCHE -->
+  <div *ngIf="openPaiementModal && selectedFacture" class="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl shadow-2xl w-full max-w-lg overflow-hidden flex flex-col animate-in fade-in zoom-in-95">
+      
+      <!-- Header -->
+      <div class="p-5 border-b border-gray-200 bg-emerald-800 text-white flex items-center justify-between">
+        <div>
+          <h2 class="text-base font-bold flex items-center gap-2">
+            <lucide-icon name="credit-card" class="size-4.5 text-emerald-300"></lucide-icon>
+            Enregistrement d'un Versement (Tranche)
+          </h2>
+          <p class="text-xs text-emerald-200 mt-0.5">Facture {{ selectedFacture.reference }} — Client: {{ selectedFacture.clientNom }}</p>
+        </div>
+        <button (click)="openPaiementModal = false" class="p-1 rounded-lg hover:bg-emerald-700 text-emerald-200 hover:text-white transition-colors cursor-pointer">
+          <lucide-icon name="x" class="size-5"></lucide-icon>
+        </button>
+      </div>
+
+      <!-- Solde recap box -->
+      <div class="p-4 bg-emerald-50/80 border-b border-emerald-100 grid grid-cols-3 gap-2 text-center text-xs">
+        <div>
+          <div class="text-gray-500 text-[11px]">Total Facture</div>
+          <div class="font-bold text-gray-900 font-mono mt-0.5">{{ formatMoney(selectedFacture.montantTotal) }}</div>
+        </div>
+        <div>
+          <div class="text-gray-500 text-[11px]">Déjà Encaissé</div>
+          <div class="font-bold text-emerald-700 font-mono mt-0.5">{{ formatMoney(selectedFacture.montantPaye) }}</div>
+        </div>
+        <div>
+          <div class="text-gray-500 text-[11px]">Reste à Payer</div>
+          <div class="font-bold text-rose-700 font-mono mt-0.5">{{ formatMoney(getResteDu(selectedFacture)) }}</div>
+        </div>
+      </div>
+
+      <!-- Formulaire -->
+      <form (ngSubmit)="submitPaiement()" class="p-5 space-y-4 text-xs">
+        
+        <!-- Montant de la tranche -->
+        <div class="space-y-1.5">
+          <div class="flex items-center justify-between">
+            <label class="font-bold text-gray-800">Montant du versement (CFA) *</label>
+            <div class="flex gap-1.5">
+              <button 
+                type="button" 
+                (click)="paiementForm.montant = getResteDu(selectedFacture)"
+                class="px-2 py-0.5 bg-emerald-100 hover:bg-emerald-200 text-emerald-800 font-bold rounded text-[10.5px] cursor-pointer">
+                Solder la totalité
+              </button>
+              <button 
+                type="button" 
+                (click)="paiementForm.montant = Math.round(getResteDu(selectedFacture) / 2)"
+                class="px-2 py-0.5 bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium rounded text-[10.5px] cursor-pointer">
+                50%
+              </button>
+            </div>
+          </div>
+          <input 
+            type="number" 
+            min="100" 
+            step="500" 
+            [(ngModel)]="paiementForm.montant" 
+            name="montant" 
+            required 
+            class="w-full h-10 px-3 text-base font-mono font-bold rounded-lg border border-gray-300 focus:ring-2 focus:ring-green-600 focus:border-green-600 bg-white">
+        </div>
+
+        <div class="grid grid-cols-2 gap-3">
+          <div class="space-y-1">
+            <label class="font-medium text-gray-700">Date du versement</label>
+            <input 
+              type="date" 
+              [(ngModel)]="paiementForm.date" 
+              name="date" 
+              required 
+              class="w-full h-9 px-2.5 rounded-lg border border-gray-200 focus:ring-1 focus:ring-green-600">
+          </div>
+          <div class="space-y-1">
+            <label class="font-medium text-gray-700">Mode de règlement</label>
+            <select 
+              [(ngModel)]="paiementForm.mode" 
+              name="mode" 
+              required 
+              class="w-full h-9 px-2.5 rounded-lg border border-gray-200 focus:ring-1 focus:ring-green-600 bg-white">
+              <option value="Espèces">💵 Espèces (Cash)</option>
+              <option value="Wave">📱 Wave</option>
+              <option value="Orange Money">📱 Orange Money</option>
+              <option value="Chèque">🧾 Chèque bancaire</option>
+              <option value="Virement">🏦 Virement bancaire</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-3">
+          <div class="space-y-1">
+            <label class="font-medium text-gray-700">Compte de Caisse / Banque</label>
+            <select 
+              [(ngModel)]="paiementForm.compteCaisse" 
+              name="compteCaisse" 
+              required 
+              class="w-full h-9 px-2.5 rounded-lg border border-gray-200 focus:ring-1 focus:ring-green-600 bg-white">
+              <option value="Caisse principale">Caisse principale</option>
+              <option value="Caisse production">Caisse production</option>
+              <option value="Caisse prestations">Caisse prestations</option>
+              <option value="Banque">Compte Banque</option>
+            </select>
+          </div>
+          <div class="space-y-1">
+            <label class="font-medium text-gray-700">N° Reçu / Réf. Transaction</label>
+            <input 
+              type="text" 
+              [(ngModel)]="paiementForm.referenceRecu" 
+              name="referenceRecu" 
+              placeholder="ex: REC-FAC-01" 
+              class="w-full h-9 px-2.5 rounded-lg border border-gray-200 focus:ring-1 focus:ring-green-600 font-mono">
+          </div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-3">
+          <div class="space-y-1">
+            <label class="font-medium text-gray-700">Agent Encaisseur</label>
+            <input 
+              type="text" 
+              [(ngModel)]="paiementForm.agent" 
+              name="agent" 
+              required 
+              class="w-full h-9 px-2.5 rounded-lg border border-gray-200 focus:ring-1 focus:ring-green-600">
+          </div>
+          <div class="space-y-1">
+            <label class="font-medium text-gray-700">Observation / Note (optionnel)</label>
+            <input 
+              type="text" 
+              [(ngModel)]="paiementForm.note" 
+              name="note" 
+              placeholder="ex: Acompte 1er versement" 
+              class="w-full h-9 px-2.5 rounded-lg border border-gray-200 focus:ring-1 focus:ring-green-600">
+          </div>
+        </div>
+
+        <div class="p-2.5 bg-gray-50 rounded-lg text-gray-600 text-[11px] flex items-center gap-2 border border-gray-200">
+          <lucide-icon name="check-circle-2" class="size-4 text-emerald-600 shrink-0"></lucide-icon>
+          <span>Ce paiement générera automatiquement une écriture de recette dans le journal de caisse sélectionné.</span>
+        </div>
+
+        <!-- Footer -->
+        <div class="flex justify-end gap-2 pt-3 border-t border-gray-200">
+          <button type="button" (click)="openPaiementModal = false" class="px-4 py-2 rounded-lg text-xs font-medium border border-gray-200 hover:bg-gray-50 cursor-pointer">
+            Annuler
+          </button>
+          <button 
+            type="submit" 
+            [disabled]="isSubmitting || paiementForm.montant <= 0" 
+            class="px-4 py-2 rounded-lg text-xs font-bold bg-emerald-700 text-white hover:bg-emerald-800 disabled:opacity-50 flex items-center gap-1.5 cursor-pointer shadow-sm">
+            <lucide-icon name="check" class="size-3.5"></lucide-icon>
+            <span>{{ isSubmitting ? 'Enregistrement...' : 'Valider le Versement' }}</span>
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL 3 : CRÉATION NOUVELLE FACTURE -->
+  <div *ngIf="openModal" class="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4">
+    <div class="bg-white rounded-xl shadow-xl w-full max-w-lg overflow-hidden flex flex-col">
+      <div class="p-5 border-b border-gray-200">
+        <h2 class="text-base font-bold text-gray-900">Émettre une Nouvelle Facture Client</h2>
+        <p class="text-xs text-gray-500">Enregistrement d'une créance pour vente de riz ou prestation agricole.</p>
+      </div>
+
+      <form (ngSubmit)="handleSubmit()" class="p-5 space-y-3.5 text-xs">
+        <div class="grid grid-cols-2 gap-3">
+          <div class="space-y-1">
+            <label class="font-medium text-gray-700">Référence Facture</label>
+            <input type="text" [(ngModel)]="formData.reference" name="reference" required class="w-full h-9 px-3 rounded-lg border border-gray-200 focus:ring-1 focus:ring-green-600 font-mono font-semibold">
+          </div>
+          <div class="space-y-1">
+            <label class="font-medium text-gray-700">Date d'Émission</label>
+            <input type="date" [(ngModel)]="formData.date" name="date" required class="w-full h-9 px-3 rounded-lg border border-gray-200 focus:ring-1 focus:ring-green-600">
+          </div>
+        </div>
+
+        <div class="space-y-1">
+          <label class="font-medium text-gray-700">Client / Producteur Facturé</label>
+          <select [(ngModel)]="formData.clientId" name="clientId" required class="w-full h-9 px-3 rounded-lg border border-gray-200 focus:ring-1 focus:ring-green-600 bg-white">
+            <option *ngFor="let c of clients" [value]="c.id">{{ c.nom }} {{ c.prenom || '' }} ({{ c.type }})</option>
+          </select>
+        </div>
+
+        <div class="grid grid-cols-2 gap-3">
+          <div class="space-y-1">
+            <label class="font-medium text-gray-700">Type de Prestation</label>
+            <select [(ngModel)]="formData.typePrestation" name="typePrestation" class="w-full h-9 px-3 rounded-lg border border-gray-200 focus:ring-1 focus:ring-green-600 bg-white">
+              <option value="Usinage Riz Blanc">Usinage Riz Blanc</option>
+              <option value="Moissonnage & Battage">Moissonnage & Battage</option>
+              <option value="Labour & Travail Sol">Labour & Travail Sol</option>
+              <option value="Vente Riz Marchand">Vente Riz Marchand</option>
+              <option value="Vente Sous-produits (Son/Brisures)">Vente Sous-produits</option>
+              <option value="Pressage Bottes Paille">Pressage Bottes Paille</option>
+            </select>
+          </div>
+          <div class="space-y-1">
+            <label class="font-medium text-gray-700">N° OF Lié (Optionnel)</label>
+            <input type="text" [(ngModel)]="formData.referenceOF" name="referenceOF" placeholder="ex: OF-2026-001" class="w-full h-9 px-3 rounded-lg border border-gray-200 focus:ring-1 focus:ring-green-600 font-mono">
+          </div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-3">
+          <div class="space-y-1">
+            <label class="font-medium text-gray-700">Montant Total Facture (CFA)</label>
+            <input type="number" min="0" step="500" [(ngModel)]="formData.montantTotal" (input)="onMontantChange()" name="montantTotal" required class="w-full h-9 px-3 font-mono font-bold rounded-lg border border-gray-200 focus:ring-1 focus:ring-green-600">
+          </div>
+          <div class="space-y-1">
+            <label class="font-medium text-gray-700">Acompte Initial Versé (CFA)</label>
+            <input type="number" min="0" step="500" [(ngModel)]="formData.montantPaye" (input)="onMontantChange()" name="montantPaye" required class="w-full h-9 px-3 font-mono font-bold rounded-lg border border-gray-200 focus:ring-1 focus:ring-green-600">
+          </div>
+        </div>
+
+        <div class="p-2.5 bg-gray-50 rounded-lg flex items-center justify-between border text-xs">
+          <span class="text-gray-600 font-medium">Statut initial :</span>
+          <span class="font-bold text-gray-900">{{ formData.statut }}</span>
+        </div>
+
+        <div class="flex justify-end gap-2 pt-3 border-t">
+          <button type="button" (click)="openModal = false" class="px-4 py-2 rounded-lg border border-gray-200 hover:bg-gray-50 cursor-pointer">Annuler</button>
+          <button type="submit" [disabled]="isSubmitting" class="px-4 py-2 rounded-lg bg-green-700 text-white font-bold hover:bg-green-800 disabled:opacity-50 cursor-pointer">
+            {{ isSubmitting ? 'Émission...' : 'Émettre la Facture' }}
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>

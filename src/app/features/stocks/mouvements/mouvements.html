@@ -1,0 +1,168 @@
+<div class="space-y-5 max-w-7xl mx-auto p-5 relative">
+  <!-- Header -->
+  <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+    <div>
+      <h1 class="text-2xl font-bold tracking-tight text-gray-900">Mouvements de Stock & Traçabilité</h1>
+      <p class="text-xs text-gray-500">Historique complet des entrées et sorties (Réceptions BRP, Usinage OF, Bottes de paille).</p>
+    </div>
+
+    <!-- Mini KPI stats -->
+    <div class="flex items-center gap-2 text-xs">
+      <div class="px-3 py-1.5 rounded-lg bg-emerald-50 border border-emerald-200 text-emerald-900 flex items-center gap-1.5 font-semibold">
+        <span class="size-2 rounded-full bg-emerald-600"></span>
+        <span>{{ countEntrees }} Entrée(s)</span>
+      </div>
+      <div class="px-3 py-1.5 rounded-lg bg-rose-50 border border-rose-200 text-rose-900 flex items-center gap-1.5 font-semibold">
+        <span class="size-2 rounded-full bg-rose-600"></span>
+        <span>{{ countSorties }} Sortie(s)</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- BARRE DE FILTRES : TYPE & DURÉE (DATE DÉBUT / DATE FIN) -->
+  <div class="bg-white p-3.5 rounded-lg border border-gray-200 shadow-xs space-y-3">
+    <div class="flex flex-wrap items-center justify-between gap-3">
+      
+      <!-- 1. FILTRE PAR TYPE (ENTRÉE / SORTIE / TOUS) -->
+      <div class="flex items-center gap-1 bg-gray-100 p-1 rounded-lg">
+        <button 
+          (click)="selectedType = 'TOUS'; onFilterChange()" 
+          [class]="selectedType === 'TOUS' ? 'bg-white text-gray-900 font-bold shadow-xs' : 'text-gray-600 hover:text-gray-900'"
+          class="px-3 py-1.5 rounded-md text-xs transition-all cursor-pointer">
+          Tous les flux ({{ mouvements.length }})
+        </button>
+        <button 
+          (click)="selectedType = 'Entrée'; onFilterChange()" 
+          [class]="selectedType === 'Entrée' ? 'bg-emerald-700 text-white font-bold shadow-xs' : 'text-gray-600 hover:text-emerald-800'"
+          class="px-3 py-1.5 rounded-md text-xs transition-all flex items-center gap-1 cursor-pointer">
+          <span>+ Entrées</span>
+        </button>
+        <button 
+          (click)="selectedType = 'Sortie'; onFilterChange()" 
+          [class]="selectedType === 'Sortie' ? 'bg-rose-700 text-white font-bold shadow-xs' : 'text-gray-600 hover:text-rose-800'"
+          class="px-3 py-1.5 rounded-md text-xs transition-all flex items-center gap-1 cursor-pointer">
+          <span>- Sorties</span>
+        </button>
+      </div>
+
+      <!-- 2. FILTRE PAR DURÉE : DATE DÉBUT & DATE FIN DIRECTES -->
+      <div class="flex flex-wrap items-center gap-2">
+        <div class="flex items-center gap-1.5 bg-gray-50 border border-gray-200 px-3 py-1 rounded-lg">
+          <lucide-icon name="calendar" class="size-3.5 text-green-700"></lucide-icon>
+          <span class="text-xs font-semibold text-gray-700">Période du :</span>
+          
+          <input 
+            type="date" 
+            [(ngModel)]="dateDebut" 
+            (change)="onFilterChange()" 
+            class="h-7 px-2 text-xs font-medium rounded border border-gray-300 bg-white focus:ring-1 focus:ring-green-600 focus:outline-none cursor-pointer">
+          
+          <span class="text-xs font-semibold text-gray-500">au :</span>
+          
+          <input 
+            type="date" 
+            [(ngModel)]="dateFin" 
+            (change)="onFilterChange()" 
+            class="h-7 px-2 text-xs font-medium rounded border border-gray-300 bg-white focus:ring-1 focus:ring-green-600 focus:outline-none cursor-pointer">
+        </div>
+
+        <!-- 3. RECHERCHE TEXTE -->
+        <div class="relative w-full sm:w-52">
+          <input 
+            type="text" 
+            [(ngModel)]="searchTerm" 
+            (input)="onFilterChange()"
+            placeholder="Rechercher article, réf..." 
+            class="w-full h-8.5 pl-8 pr-3 text-xs rounded-md border border-gray-200 focus:outline-none focus:ring-1 focus:ring-green-600">
+          <lucide-icon name="search" class="size-3.5 text-gray-400 absolute left-2.5 top-2.5"></lucide-icon>
+        </div>
+
+        <!-- Bouton Réinitialiser -->
+        <button 
+          *ngIf="isFiltered"
+          (click)="resetFilters()" 
+          title="Réinitialiser tous les filtres" 
+          class="h-8.5 px-2.5 rounded-md text-xs font-medium text-gray-600 bg-gray-100 hover:bg-gray-200 border border-gray-200 flex items-center gap-1 cursor-pointer transition-colors">
+          <lucide-icon name="rotate-ccw" class="size-3.5"></lucide-icon>
+          <span>Effacer</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- TABLE DES MOUVEMENTS -->
+  <div class="rounded-lg border border-gray-200 bg-white text-gray-900 shadow-xs overflow-hidden">
+    <div class="p-4 border-b border-gray-200 bg-gray-50/60 flex items-center justify-between">
+      <h3 class="text-sm font-bold text-gray-900 flex items-center gap-2">
+        <lucide-icon name="history" class="size-4 text-green-700"></lucide-icon>
+        Registre des Mouvements Automatisés
+      </h3>
+      <span class="text-xs font-bold text-green-800 bg-green-100 px-2 py-0.5 rounded">
+        {{ filteredMouvements.length }} résultat(s)
+      </span>
+    </div>
+
+    <div class="p-4">
+      <div *ngIf="isLoading" class="py-8 text-center text-xs text-gray-500">Chargement des mouvements...</div>
+      
+      <div *ngIf="!isLoading" class="overflow-x-auto">
+        <table class="w-full text-xs">
+          <thead class="bg-gray-50/80 border-b border-gray-200">
+            <tr class="text-left font-semibold uppercase tracking-wider text-gray-500">
+              <th class="py-3 px-3.5">Date & Heure</th>
+              <th class="py-3 px-3.5">N° Mouvement</th>
+              <th class="py-3 px-3.5 text-center">Type</th>
+              <th class="py-3 px-3.5">Article</th>
+              <th class="py-3 px-3.5">Détails (Origine ➔ Destination)</th>
+              <th class="py-3 px-3.5 text-right">Quantité</th>
+              <th class="py-3 px-3.5 text-left">Agent</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-gray-100">
+            <tr *ngFor="let mvt of paginatedMouvements" class="hover:bg-gray-50/50 transition-colors">
+              <td class="py-3 px-3.5 font-mono text-gray-600">
+                <div class="font-bold text-gray-900">{{ mvt.date }}</div>
+                <div class="text-[10.5px] text-gray-400">{{ mvt.heure }}</div>
+              </td>
+              <td class="py-3 px-3.5 font-mono text-gray-700 font-semibold">{{ mvt.numero }}</td>
+              <td class="py-3 px-3.5 text-center">
+                <span *ngIf="mvt.type === 'Entrée'" class="inline-flex items-center rounded-full px-2 py-0.5 text-[10.5px] font-bold bg-green-100 text-green-800">
+                  + Entrée
+                </span>
+                <span *ngIf="mvt.type !== 'Entrée'" class="inline-flex items-center rounded-full px-2 py-0.5 text-[10.5px] font-bold bg-rose-100 text-rose-800">
+                  - Sortie
+                </span>
+              </td>
+              <td class="py-3 px-3.5 font-bold text-gray-900">{{ mvt.article }}</td>
+              <td class="py-3 px-3.5">
+                <div class="flex items-center gap-1 text-gray-800 font-medium">
+                  <span>{{ mvt.origine || "-" }}</span>
+                  <lucide-icon name="arrow-right-left" class="size-3 text-gray-400"></lucide-icon>
+                  <span class="text-green-800">{{ mvt.destination || "-" }}</span>
+                </div>
+                <div *ngIf="mvt.referenceDocument" class="text-[10.5px] text-gray-400 font-mono">Réf: {{ mvt.referenceDocument }}</div>
+              </td>
+              <td class="py-3 px-3.5 text-right font-mono font-bold" [class.text-green-700]="mvt.type === 'Entrée'" [class.text-rose-600]="mvt.type !== 'Entrée'">
+                {{ mvt.type === 'Entrée' ? '+' : '-' }}{{ mvt.quantite | number }} {{ mvt.unite }}
+              </td>
+              <td class="py-3 px-3.5 text-gray-600 font-mono">{{ mvt.utilisateur }}</td>
+            </tr>
+            <tr *ngIf="filteredMouvements.length === 0">
+              <td colspan="7" class="py-8 text-center text-xs text-gray-400">
+                Aucun mouvement correspondant aux filtres sélectionnés.
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <app-pagination 
+        [totalItems]="filteredMouvements.length" 
+        [pageSize]="pageSize" 
+        [currentPage]="currentPage" 
+        (pageChange)="currentPage = $event" 
+        (pageSizeChange)="pageSize = $event">
+      </app-pagination>
+    </div>
+  </div>
+</div>

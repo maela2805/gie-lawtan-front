@@ -1,0 +1,336 @@
+<div class="space-y-5 max-w-7xl mx-auto p-5 relative">
+  <!-- Toast Notification -->
+  <div *ngIf="toastMessage" class="fixed top-5 right-5 z-50 flex items-center gap-2 rounded-lg bg-emerald-800 text-white px-4 py-3 shadow-lg border border-emerald-600 animate-in slide-in-from-top-2 text-xs font-bold">
+    <lucide-icon name="check" class="size-4 text-emerald-300"></lucide-icon>
+    <span>{{ toastMessage }}</span>
+  </div>
+
+  <!-- Header -->
+  <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+    <div>
+      <h1 class="text-2xl font-bold tracking-tight text-gray-900">Clôture de Production & Rendements</h1>
+      <p class="text-xs text-gray-500">Validation des productions terminées, ratios de transformation et facturation client.</p>
+    </div>
+  </div>
+
+  <!-- Table des OFs en cours de production -->
+  <div class="rounded-lg border border-gray-200 bg-white text-gray-900 shadow-xs overflow-hidden">
+    <div class="p-4 border-b border-gray-200 bg-gray-50/60 flex items-center justify-between">
+      <h3 class="text-sm font-bold text-gray-900 flex items-center gap-2">
+        <lucide-icon name="clipboard-list" class="size-4 text-green-700"></lucide-icon>
+        Ordres de Fabrication en Production (Prêts pour Clôture)
+      </h3>
+      <span class="text-xs font-bold text-green-800 bg-green-100 px-2 py-0.5 rounded">
+        {{ ofsEnProduction.length }} en cours
+      </span>
+    </div>
+
+    <div *ngIf="isLoading" class="py-12 text-center text-xs text-gray-500">Chargement des ordres...</div>
+
+    <div *ngIf="!isLoading" class="overflow-x-auto">
+      <table class="w-full text-xs">
+        <thead class="bg-gray-50/80 border-b border-gray-200">
+          <tr class="text-left font-semibold uppercase tracking-wider text-gray-500">
+            <th class="py-3 px-3.5">N° OF</th>
+            <th class="py-3 px-3.5">Client</th>
+            <th class="py-3 px-3.5">Machine</th>
+            <th class="py-3 px-3.5">Responsable</th>
+            <th class="py-3 px-3.5 text-right">Sacs Prévisionnels</th>
+            <th class="py-3 px-3.5 text-center">Statut</th>
+            <th class="py-3 px-3.5 text-right">Action</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-gray-100">
+          <tr *ngFor="let item of paginatedOFs" class="hover:bg-gray-50/50 transition-colors">
+            <td class="py-3 px-3.5 font-bold font-mono text-gray-900">{{ item.numero }}</td>
+            <td class="py-3 px-3.5 font-bold text-gray-900">{{ item.clientNom }}</td>
+            <td class="py-3 px-3.5 text-gray-600">{{ item.machineNom }}</td>
+            <td class="py-3 px-3.5 text-gray-600">{{ item.responsable }}</td>
+            <td class="py-3 px-3.5 text-right font-mono font-bold text-emerald-700">
+              {{ item.nombreSacsPrevisionnel || item.nombreSacs || 0 }} sacs
+            </td>
+            <td class="py-3 px-3.5 text-center">
+              <span class="inline-flex items-center rounded-full px-2 py-0.5 text-[10.5px] font-bold bg-amber-100 text-amber-900 border border-amber-200">
+                ⚙️ En production
+              </span>
+            </td>
+            <td class="py-3 px-3.5 text-right">
+              <button 
+                (click)="openClotureModal(item)"
+                class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-bold bg-green-700 text-white hover:bg-green-800 shadow-xs transition-colors cursor-pointer">
+                <lucide-icon name="check-circle-2" class="size-3.5"></lucide-icon>
+                Clôturer
+              </button>
+            </td>
+          </tr>
+          <tr *ngIf="ofsEnProduction.length === 0">
+            <td colspan="7" class="py-8 text-center text-xs text-gray-400">
+              Aucun ordre de fabrication en production pour le moment.
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <app-pagination 
+      [totalItems]="ofsEnProduction.length" 
+      [pageSize]="pageSize" 
+      [currentPage]="currentPage" 
+      (pageChange)="currentPage = $event" 
+      (pageSizeChange)="pageSize = $event">
+    </app-pagination>
+  </div>
+
+  <!-- MODAL DE CLÔTURE & RENDEMENT -->
+  <div *ngIf="openModal" class="fixed inset-0 z-50 bg-black/60 flex items-center justify-center p-3">
+    <div class="bg-white rounded-xl shadow-2xl w-full max-w-3xl overflow-hidden flex flex-col max-h-[92vh]">
+      
+      <!-- Modal Header -->
+      <div class="p-4 border-b bg-gray-50 flex items-center justify-between">
+        <div>
+          <h2 class="text-base font-bold text-gray-900 flex items-center gap-2">
+            <lucide-icon name="clipboard-list" class="size-4.5 text-green-700"></lucide-icon>
+            Formulaire de Clôture — {{ selectedOF?.numero }}
+          </h2>
+          <p class="text-xs text-gray-500">
+            Client : <strong class="text-gray-900">{{ selectedOF?.clientNom }}</strong> • Date : {{ selectedOF?.date }} • Prévu : {{ selectedOF?.nombreSacsPrevisionnel || selectedOF?.nombreSacs }} sacs
+          </p>
+        </div>
+        <button (click)="openModal = false" class="p-1 rounded text-gray-400 hover:text-gray-700 cursor-pointer">
+          <lucide-icon name="x" class="size-4.5"></lucide-icon>
+        </button>
+      </div>
+
+      <form (ngSubmit)="handleSubmit()" class="p-5 space-y-4 overflow-y-auto text-xs">
+        
+        <!-- SECTION 1 : MATIÈRE PREMIÈRE CONSOMMÉE -->
+        <div class="p-4 rounded-lg bg-gray-50/80 border border-gray-200 space-y-3">
+          <div class="font-bold text-gray-900 flex items-center gap-1.5">
+            <span>📦</span> 1. Matière Première Consommée & Entrepôt
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            <div class="space-y-1">
+              <label class="font-semibold text-gray-700">Nombre de sacs réels consommés</label>
+              <input 
+                type="number" 
+                [(ngModel)]="clotureForm.nombreSacsReels" 
+                name="nombreSacsReels" 
+                required 
+                class="w-full h-8.5 px-3 rounded-md border border-gray-200 focus:ring-1 focus:ring-green-600 font-mono font-bold">
+            </div>
+
+            <div class="space-y-1">
+              <label class="font-semibold text-gray-700">Poids Total Paddy consommé (kg)</label>
+              <input 
+                type="number" 
+                [(ngModel)]="clotureForm.paddyConsomme" 
+                name="paddyConsomme" 
+                required 
+                class="w-full h-8.5 px-3 rounded-md border border-gray-200 focus:ring-1 focus:ring-green-600 font-mono font-bold text-green-800">
+            </div>
+
+            <div class="space-y-1">
+              <label class="font-semibold text-gray-700">Entrepôt de destination</label>
+              <select [(ngModel)]="clotureForm.entrepotDestination" name="entrepotDestination" required class="w-full h-8.5 px-2 rounded-md border border-gray-200 focus:ring-1 focus:ring-green-600">
+                <option *ngFor="let opt of entrepotOptions" [value]="opt">{{ opt }}</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Justification d'écart avec ENREGISTREMENT VOCAL RÉEL -->
+          <div *ngIf="hasEcart()" class="space-y-1.5 p-3 rounded-md bg-amber-50 border border-amber-200">
+            <div class="flex items-center justify-between">
+              <label class="font-bold text-amber-900 flex items-center gap-1">
+                <lucide-icon name="alert-circle" class="size-3.5"></lucide-icon>
+                Écart constaté : Justification obligatoire (Texte ou Vocal)
+              </label>
+
+              <!-- Bouton Micro Vocal -->
+              <button 
+                type="button" 
+                (click)="toggleVoiceRecording()"
+                class="inline-flex items-center gap-1 px-2.5 py-1 rounded text-xs font-bold transition-all cursor-pointer"
+                [class.bg-rose-600]="isRecording"
+                [class.text-white]="isRecording"
+                [class.animate-pulse]="isRecording"
+                [class.bg-amber-200]="!isRecording"
+                [class.text-amber-950]="!isRecording">
+                <lucide-icon [name]="isRecording ? 'square' : 'mic'" class="size-3.5"></lucide-icon>
+                <span>{{ isRecording ? 'Arrêter (' + recordingSeconds + 's)' : '🎙️ Enregistrer Vocal' }}</span>
+              </button>
+            </div>
+
+            <div class="flex items-center gap-2">
+              <input 
+                type="text" 
+                [(ngModel)]="clotureForm.justificationEcart" 
+                name="justificationEcart" 
+                placeholder="Expliquer la cause de l'écart (humidité, impuretés, etc.)..." 
+                class="w-full h-8 px-3 text-xs rounded border border-amber-300 bg-white">
+            </div>
+
+            <!-- Player audio si enregistrement vocal présent -->
+            <div *ngIf="audioUrl" class="flex items-center gap-2 pt-1">
+              <audio [src]="audioUrl" controls class="h-7 w-full max-w-xs"></audio>
+              <span class="text-[10.5px] text-emerald-800 font-bold">✓ Audio prêt</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- SECTION 2 : LES 4 PRODUITS PRINCIPAUX -->
+        <div class="space-y-2">
+          <div class="font-bold text-gray-900 flex items-center gap-1.5">
+            <span>🌾</span> 2. Les 4 Produits Principaux Obtenus
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2.5">
+            <!-- 1. Riz Entier -->
+            <div class="p-2.5 rounded-lg border border-emerald-200 bg-emerald-50/40 space-y-1.5">
+              <div class="font-bold text-emerald-950">Riz Entier</div>
+              <div class="space-y-1">
+                <input type="number" [(ngModel)]="clotureForm.rizEntierSacs" (ngModelChange)="onSacsChange('entier', 50)" name="rizEntierSacs" placeholder="Nb sacs" class="w-full h-7 px-2 rounded border border-gray-200 font-mono">
+                <div class="text-[11px] text-gray-500 font-mono">Poids : {{ clotureForm.rizEntierKg }} kg</div>
+                <input type="number" [(ngModel)]="clotureForm.prixUnitaireEntier" name="prixUnitaireEntier" placeholder="Prix CFA/kg" class="w-full h-7 px-2 rounded border border-gray-200 font-mono">
+              </div>
+            </div>
+
+            <!-- 2. Riz Intermédiaire -->
+            <div class="p-2.5 rounded-lg border border-blue-200 bg-blue-50/40 space-y-1.5">
+              <div class="font-bold text-blue-950">Riz Intermédiaire</div>
+              <div class="space-y-1">
+                <input type="number" [(ngModel)]="clotureForm.rizIntermediaireSacs" (ngModelChange)="onSacsChange('inter', 50)" name="rizIntermediaireSacs" placeholder="Nb sacs" class="w-full h-7 px-2 rounded border border-gray-200 font-mono">
+                <div class="text-[11px] text-gray-500 font-mono">Poids : {{ clotureForm.rizIntermediaireKg }} kg</div>
+                <input type="number" [(ngModel)]="clotureForm.prixUnitaireIntermediaire" name="prixUnitaireIntermediaire" placeholder="Prix CFA/kg" class="w-full h-7 px-2 rounded border border-gray-200 font-mono">
+              </div>
+            </div>
+
+            <!-- 3. Riz Brisé -->
+            <div class="p-2.5 rounded-lg border border-indigo-200 bg-indigo-50/40 space-y-1.5">
+              <div class="font-bold text-indigo-950">Riz Brisé</div>
+              <div class="space-y-1">
+                <input type="number" [(ngModel)]="clotureForm.rizBriseSacs" (ngModelChange)="onSacsChange('brise', 50)" name="rizBriseSacs" placeholder="Nb sacs" class="w-full h-7 px-2 rounded border border-gray-200 font-mono">
+                <div class="text-[11px] text-gray-500 font-mono">Poids : {{ clotureForm.rizBriseKg }} kg</div>
+                <input type="number" [(ngModel)]="clotureForm.prixUnitaireBrise" name="prixUnitaireBrise" placeholder="Prix CFA/kg" class="w-full h-7 px-2 rounded border border-gray-200 font-mono">
+              </div>
+            </div>
+
+            <!-- 4. Fine Brisure -->
+            <div class="p-2.5 rounded-lg border border-purple-200 bg-purple-50/40 space-y-1.5">
+              <div class="font-bold text-purple-950">Fine Brisure</div>
+              <div class="space-y-1">
+                <input type="number" [(ngModel)]="clotureForm.fineBrisureSacs" (ngModelChange)="onSacsChange('fine', 50)" name="fineBrisureSacs" placeholder="Nb sacs" class="w-full h-7 px-2 rounded border border-gray-200 font-mono">
+                <div class="text-[11px] text-gray-500 font-mono">Poids : {{ clotureForm.fineBrisureKg }} kg</div>
+                <input type="number" [(ngModel)]="clotureForm.prixUnitaireFine" name="prixUnitaireFine" placeholder="Prix CFA/kg" class="w-full h-7 px-2 rounded border border-gray-200 font-mono">
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- SECTION 3 : BANDEAU DU RATIO DES 4 PRODUITS PRINCIPAUX -->
+        <div class="p-3.5 rounded-lg border border-green-300 bg-emerald-50 flex items-center justify-between">
+          <div>
+            <div class="text-xs font-bold uppercase text-green-950">
+              Ratio de Transformation des 4 Produits Principaux
+            </div>
+            <div class="text-[10.5px] text-green-800">
+              Formule : (Riz Entier + Intermédiaire + Brisé + Fine Brisure) × 100 ÷ (Paddy Consommé)
+            </div>
+          </div>
+          <div class="text-right">
+            <span class="text-2xl font-black text-green-700 font-mono">{{ ratioTransformation4Principaux }} %</span>
+            <div class="text-[10px] text-gray-500 font-medium">Rendement Global Usine : {{ rendementGlobal }} %</div>
+          </div>
+        </div>
+
+        <!-- SECTION 4 : SOUS-PRODUITS & RÈGLE DE PARTAGE -->
+        <div class="space-y-2">
+          <div class="font-bold text-gray-900 flex items-center gap-1.5">
+            <span>🌾</span> 4. Sous-produits Obtenus & Règle de Partage
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <!-- Son de riz -->
+            <div class="p-3 rounded-lg border border-amber-200 bg-amber-50/40 space-y-1.5">
+              <div class="font-bold text-amber-950">Son de Riz</div>
+              <div class="grid grid-cols-3 gap-2">
+                <div>
+                  <label class="text-[10px] text-gray-500">Sacs (40kg)</label>
+                  <input type="number" [(ngModel)]="clotureForm.sonDeRizSacs" (ngModelChange)="onSacsChange('son', 40)" name="sonDeRizSacs" class="w-full h-7 px-2 rounded border border-gray-200 font-mono">
+                </div>
+                <div>
+                  <label class="text-[10px] text-gray-500">Poids (kg)</label>
+                  <input type="number" [(ngModel)]="clotureForm.sonDeRizKg" name="sonDeRizKg" class="w-full h-7 px-2 rounded border border-gray-200 font-mono">
+                </div>
+                <div>
+                  <label class="text-[10px] text-gray-500">Prix unitaire</label>
+                  <input type="number" [(ngModel)]="clotureForm.prixUnitaireSon" name="prixUnitaireSon" class="w-full h-7 px-2 rounded border border-gray-200 font-mono">
+                </div>
+              </div>
+            </div>
+
+            <!-- Balle de riz avec PARTAGE 50% / 50% -->
+            <div class="p-3 rounded-lg border border-amber-200 bg-amber-50/40 space-y-1.5">
+              <div class="flex items-center justify-between">
+                <span class="font-bold text-amber-950">Balle de Riz (Sous-produit)</span>
+                <span class="px-1.5 py-0.2 rounded bg-amber-200 text-amber-950 font-bold text-[10px]">Partage 50% / 50%</span>
+              </div>
+              <div class="grid grid-cols-3 gap-2">
+                <div>
+                  <label class="text-[10px] text-gray-500">Nb. Sacs total</label>
+                  <input type="number" [(ngModel)]="clotureForm.balleDeRizSacs" (ngModelChange)="onSacsChange('balle', 10)" name="balleDeRizSacs" class="w-full h-7 px-2 rounded border border-gray-200 font-mono">
+                </div>
+                <div>
+                  <label class="text-[10px] text-gray-500">Unités / Volume</label>
+                  <input type="number" [(ngModel)]="clotureForm.balleDeRizUnites" name="balleDeRizUnites" class="w-full h-7 px-2 rounded border border-gray-200 font-mono">
+                </div>
+                <div>
+                  <label class="text-[10px] text-gray-500">Prix unitaire</label>
+                  <input type="number" [(ngModel)]="clotureForm.prixUnitaireBalle" name="prixUnitaireBalle" class="w-full h-7 px-2 rounded border border-gray-200 font-mono">
+                </div>
+              </div>
+              <div class="flex justify-between text-[11px] font-bold text-amber-900 pt-1 border-t border-amber-200/60">
+                <span>Part Client (50%) : <strong class="text-green-800">{{ ballePartClient }} sacs</strong></span>
+                <span>Part Lawtan (50%) : <strong class="text-amber-800">{{ ballePartLawtan }} sacs</strong></span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ALERTE DE DÉPASSEMENT DE MATIÈRE PREMIÈRE -->
+        <div *ngIf="isDepassementMatiere" class="p-3 rounded-lg bg-rose-50 border border-rose-300 text-rose-950 space-y-1">
+          <div class="font-bold flex items-center gap-1.5">
+            <lucide-icon name="alert-circle" class="size-4 text-rose-600"></lucide-icon>
+            Dépassement du Bilan Matière !
+          </div>
+          <p class="text-[11px]">
+            La somme de tous les produits obtenus (<strong>{{ totalProduitsObtenusKg }} kg</strong>) dépasse le paddy consommé (<strong>{{ clotureForm.paddyConsomme }} kg</strong>).
+            Veuillez ajuster les quantités avant de clôturer.
+          </p>
+        </div>
+
+        <!-- TOTAL VALEUR FINANCIÈRE & FACTURATION -->
+        <div class="p-4 rounded-lg bg-gray-50 border border-gray-200 flex items-center justify-between">
+          <div>
+            <div class="text-xs font-bold uppercase text-gray-700">Valeur Totale Estimée & Facturation</div>
+            <div class="text-[11px] text-gray-500">À la validation, une facture sera générée pour {{ selectedOF?.clientNom }}.</div>
+          </div>
+          <div class="text-xl font-black text-gray-900 font-mono">
+            {{ formatMoney(totalValeurEstimee) }}
+          </div>
+        </div>
+
+        <!-- Boutons d'Action -->
+        <div class="flex justify-end gap-2 pt-3 border-t">
+          <button type="button" (click)="openModal = false" class="px-3.5 py-2 rounded-md border border-gray-200 hover:bg-gray-50 font-medium cursor-pointer">Annuler</button>
+          <button 
+            type="submit" 
+            [disabled]="isSubmitting || isDepassementMatiere" 
+            class="px-5 py-2 rounded-md bg-green-700 text-white font-bold hover:bg-green-800 disabled:opacity-50 transition-all shadow-xs cursor-pointer">
+            {{ isSubmitting ? 'Enregistrement & Facturation...' : 'Valider la Clôture & Générer la Facture' }}
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>

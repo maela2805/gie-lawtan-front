@@ -1,0 +1,205 @@
+<div class="space-y-5 max-w-7xl mx-auto p-5 relative">
+  <!-- Toast Notification -->
+  <div *ngIf="toastMessage" class="fixed top-5 right-5 z-50 flex items-center gap-2 rounded-lg bg-emerald-800 text-white px-4 py-3 shadow-lg border border-emerald-600 animate-in slide-in-from-top-2 text-xs font-bold">
+    <lucide-icon name="check" class="size-4 text-emerald-300"></lucide-icon>
+    <span>{{ toastMessage }}</span>
+  </div>
+
+  <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+    <div>
+      <h1 class="text-2xl font-bold tracking-tight text-gray-900">Stock des Bottes de Paille</h1>
+      <p class="text-xs text-gray-500">Gestion des lieux de stockage et transferts des bottes (paille compressée).</p>
+    </div>
+    <div class="flex gap-2">
+      <button (click)="openLieu = true" class="inline-flex items-center justify-center rounded-lg text-xs font-semibold border border-gray-200 bg-white hover:bg-gray-100 text-gray-800 h-9 px-3.5 gap-1.5 shadow-xs cursor-pointer">
+        <lucide-icon name="map-pin" class="size-3.5"></lucide-icon>
+        Nouveau Lieu
+      </button>
+      <button (click)="openTransfert = true" class="inline-flex items-center justify-center rounded-lg text-xs font-bold bg-green-700 text-white hover:bg-green-800 h-9 px-3.5 gap-1.5 shadow-xs transition-colors cursor-pointer">
+        <lucide-icon name="arrow-right-left" class="size-3.5"></lucide-icon>
+        Transférer Bottes
+      </button>
+    </div>
+  </div>
+
+  <!-- Lieux Modal -->
+  <div *ngIf="openLieu" class="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4">
+    <div class="bg-white rounded-xl shadow-xl w-full max-w-md overflow-hidden flex flex-col">
+      <div class="p-5 border-b bg-gray-50 flex items-center justify-between">
+        <h2 class="text-base font-bold text-gray-900">Créer un lieu de stockage</h2>
+        <button (click)="openLieu = false" class="p-1 rounded text-gray-400 hover:text-gray-700 cursor-pointer">
+          <lucide-icon name="x" class="size-4"></lucide-icon>
+        </button>
+      </div>
+      <div class="p-5">
+        <form (ngSubmit)="handleCreateLieu()" class="space-y-3.5 text-xs">
+          <div class="space-y-1">
+            <label class="font-semibold text-gray-700">Nom du lieu</label>
+            <input [(ngModel)]="formLieu.nom" name="nom" required class="w-full h-8.5 px-3 rounded-md border border-gray-200 focus:ring-1 focus:ring-green-600">
+          </div>
+          <div class="space-y-1">
+            <label class="font-semibold text-gray-700">Type de lieu</label>
+            <select [(ngModel)]="formLieu.type" name="type" class="w-full h-8.5 px-3 rounded-md border border-gray-200 focus:ring-1 focus:ring-green-600">
+              <option value="Dépôt">Dépôt Principal</option>
+              <option value="Parcelle">Parcelle Producteur</option>
+              <option value="Site temporaire">Site temporaire</option>
+            </select>
+          </div>
+          <div class="grid grid-cols-2 gap-3">
+            <div class="space-y-1">
+              <label class="font-semibold text-gray-700">Responsable</label>
+              <input [(ngModel)]="formLieu.responsable" name="responsable" required class="w-full h-8.5 px-3 rounded-md border border-gray-200 focus:ring-1 focus:ring-green-600">
+            </div>
+            <div class="space-y-1">
+              <label class="font-semibold text-gray-700">Téléphone</label>
+              <input [(ngModel)]="formLieu.telephone" name="telephone" required class="w-full h-8.5 px-3 rounded-md border border-gray-200 focus:ring-1 focus:ring-green-600">
+            </div>
+          </div>
+          <div class="flex justify-end gap-2 pt-3 border-t">
+            <button type="button" (click)="openLieu = false" class="px-3 py-1.5 rounded-md border border-gray-200 hover:bg-gray-50 cursor-pointer">Annuler</button>
+            <button type="submit" class="px-4 py-1.5 rounded-md bg-green-700 text-white font-bold hover:bg-green-800 cursor-pointer">Créer le lieu</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Transfert Modal -->
+  <div *ngIf="openTransfert" class="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4">
+    <div class="bg-white rounded-xl shadow-xl w-full max-w-md overflow-hidden flex flex-col">
+      <div class="p-5 border-b bg-gray-50 flex items-center justify-between">
+        <h2 class="text-base font-bold text-gray-900">Nouveau transfert de bottes</h2>
+        <button (click)="openTransfert = false" class="p-1 rounded text-gray-400 hover:text-gray-700 cursor-pointer">
+          <lucide-icon name="x" class="size-4"></lucide-icon>
+        </button>
+      </div>
+      <div class="p-5">
+        <form (ngSubmit)="handleCreateTransfert()" class="space-y-3.5 text-xs">
+          <div class="space-y-1">
+            <label class="font-semibold text-gray-700">Date du transfert</label>
+            <input type="date" [(ngModel)]="formTransfert.date" name="date" required class="w-full h-8.5 px-3 rounded-md border border-gray-200 focus:ring-1 focus:ring-green-600">
+          </div>
+          <div class="grid grid-cols-2 gap-3">
+            <div class="space-y-1">
+              <label class="font-semibold text-gray-700">Lieu d'Origine</label>
+              <select [(ngModel)]="formTransfert.origineId" name="origineId" required class="w-full h-8.5 px-3 rounded-md border border-gray-200 focus:ring-1 focus:ring-green-600">
+                <option value="" disabled selected>Depuis...</option>
+                <option *ngFor="let l of lieux" [value]="l.id">{{ l.nom }} ({{ l.quantite }} bottes)</option>
+              </select>
+            </div>
+            <div class="space-y-1">
+              <label class="font-semibold text-gray-700">Lieu de Destination</label>
+              <select [(ngModel)]="formTransfert.destinationId" name="destinationId" required class="w-full h-8.5 px-3 rounded-md border border-gray-200 focus:ring-1 focus:ring-green-600">
+                <option value="" disabled selected>Vers...</option>
+                <option *ngFor="let l of lieux" [value]="l.id">{{ l.nom }}</option>
+              </select>
+            </div>
+          </div>
+          <div class="grid grid-cols-2 gap-3">
+            <div class="space-y-1">
+              <label class="font-semibold text-gray-700">Quantité (bottes)</label>
+              <input type="number" min="1" [(ngModel)]="formTransfert.quantite" name="quantite" required class="w-full h-8.5 px-3 rounded-md border border-gray-200 font-mono font-bold text-green-800">
+            </div>
+            <div class="space-y-1">
+              <label class="font-semibold text-gray-700">Transporteur / Chauffeur</label>
+              <input [(ngModel)]="formTransfert.responsable" name="responsable" required class="w-full h-8.5 px-3 rounded-md border border-gray-200">
+            </div>
+          </div>
+          <div class="flex justify-end gap-2 pt-3 border-t">
+            <button type="button" (click)="openTransfert = false" class="px-3 py-1.5 rounded-md border border-gray-200 hover:bg-gray-50 cursor-pointer">Annuler</button>
+            <button type="submit" class="px-4 py-1.5 rounded-md bg-green-700 text-white font-bold hover:bg-green-800 cursor-pointer">Valider le transfert</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <div class="grid gap-5 md:grid-cols-2">
+    <!-- Lieux de Stockage -->
+    <div class="rounded-lg border border-gray-200 bg-white text-gray-900 shadow-xs">
+      <div class="p-4 border-b border-gray-200 bg-gray-50/60 flex items-center justify-between">
+        <div>
+          <h3 class="text-sm font-bold text-gray-900 flex items-center gap-1.5">
+            <lucide-icon name="boxes" class="size-4 text-green-700"></lucide-icon>
+            Lieux de Stockage
+          </h3>
+          <p class="text-[11px] text-gray-500">Vue d'ensemble des bottes par emplacement (Dépôt, parcelles).</p>
+        </div>
+        <span class="text-xs font-bold text-green-800 font-mono bg-green-100 px-2.5 py-1 rounded">
+          Total : {{ totalGlobal }} bottes
+        </span>
+      </div>
+
+      <div class="p-4">
+        <div class="overflow-x-auto">
+          <table class="w-full text-xs">
+            <thead class="bg-gray-50 border-b border-gray-100">
+              <tr class="text-left font-semibold text-gray-500">
+                <th class="py-2.5 px-3">Lieu</th>
+                <th class="py-2.5 px-3">Type</th>
+                <th class="py-2.5 px-3">Contact</th>
+                <th class="py-2.5 px-3 text-right">Stock Disponible</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-100">
+              <tr *ngFor="let l of lieux" class="hover:bg-gray-50/50">
+                <td class="py-3 px-3 font-bold text-gray-900">{{ l.nom }}</td>
+                <td class="py-3 px-3">
+                  <span class="inline-flex items-center rounded px-2 py-0.5 text-[10.5px] font-semibold bg-gray-100 text-gray-800">{{ l.type }}</span>
+                </td>
+                <td class="py-3 px-3">
+                  <div class="font-medium text-gray-800">{{ l.responsable }}</div>
+                  <div class="text-[10.5px] text-gray-400 font-mono">{{ l.telephone }}</div>
+                </td>
+                <td class="py-3 px-3 text-right font-mono font-bold text-green-700 text-sm">
+                  {{ l.quantite }} bottes
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- Historique des transferts -->
+    <div class="rounded-lg border border-gray-200 bg-white text-gray-900 shadow-xs flex flex-col justify-between">
+      <div>
+        <div class="p-4 border-b border-gray-200 bg-gray-50/60">
+          <h3 class="text-sm font-bold text-gray-900 flex items-center gap-1.5">
+            <lucide-icon name="arrow-right-left" class="size-4 text-green-700"></lucide-icon>
+            Historique des transferts
+          </h3>
+          <p class="text-[11px] text-gray-500">Traçabilité des mouvements entre parcelles et dépôts.</p>
+        </div>
+        <div class="p-4 space-y-2.5 max-h-[340px] overflow-y-auto">
+          <div *ngFor="let t of paginatedTransferts" class="rounded-lg border border-gray-200/80 p-3 bg-gray-50/40 text-xs flex items-center justify-between">
+            <div class="space-y-0.5">
+              <div class="flex items-center gap-2 text-[10.5px] text-gray-500">
+                <span class="font-mono font-bold text-gray-800">{{ t.date }}</span>
+                <span>•</span>
+                <span>Par: {{ t.responsable }}</span>
+              </div>
+              <div class="flex items-center gap-2 font-semibold text-gray-900">
+                <span>{{ t.origine }}</span>
+                <lucide-icon name="arrow-right-left" class="size-3 text-gray-400"></lucide-icon>
+                <span>{{ t.destination }}</span>
+              </div>
+            </div>
+            <div class="font-mono font-bold text-green-700 text-xs bg-green-50 px-2 py-1 rounded border border-green-200">
+              +{{ t.quantite }} bottes
+            </div>
+          </div>
+          <div *ngIf="transferts.length === 0" class="py-6 text-center text-xs text-gray-400">Aucun transfert récent.</div>
+        </div>
+      </div>
+
+      <app-pagination 
+        [totalItems]="transferts.length" 
+        [pageSize]="pageSizeTransferts" 
+        [currentPage]="currentPageTransferts" 
+        (pageChange)="currentPageTransferts = $event" 
+        (pageSizeChange)="pageSizeTransferts = $event">
+      </app-pagination>
+    </div>
+  </div>
+</div>

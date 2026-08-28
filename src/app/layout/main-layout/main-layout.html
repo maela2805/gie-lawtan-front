@@ -1,0 +1,25 @@
+<div class="min-h-screen bg-background text-foreground lg:grid lg:grid-cols-[16rem_minmax(0,1fr)]">
+  <aside class="hidden lg:sticky lg:top-0 lg:block lg:h-screen">
+    <app-sidebar></app-sidebar>
+  </aside>
+
+  @if (isMobileSidebarOpen) {
+    <div class="fixed inset-0 z-50 lg:hidden">
+      <button
+        aria-label="Fermer le menu"
+        class="absolute inset-0 bg-foreground/50 w-full h-full cursor-default"
+        (click)="closeMobileSidebar()"
+      ></button>
+      <div class="absolute inset-y-0 left-0 w-72 max-w-[85vw] shadow-soft">
+        <app-sidebar (click)="closeMobileSidebar()"></app-sidebar>
+      </div>
+    </div>
+  }
+
+  <div class="flex min-w-0 flex-col">
+    <app-header (toggleSidebar)="toggleMobileSidebar()"></app-header>
+    <main class="min-w-0 flex-1 px-4 py-6 md:px-6 lg:px-8">
+      <router-outlet></router-outlet>
+    </main>
+  </div>
+</div>

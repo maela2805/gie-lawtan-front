@@ -1,0 +1,133 @@
+<div class="space-y-6 max-w-7xl mx-auto p-6">
+  <div>
+    <h1 class="text-3xl font-bold tracking-tight">Suivi de Production & Rendements</h1>
+    <p class="text-gray-500">Indicateurs de performance (KPI) et rendements réels des 6 produits issus de la transformation.</p>
+  </div>
+
+  <div class="grid gap-4 md:grid-cols-3">
+    <div class="rounded-xl border bg-white text-gray-900 shadow-sm p-6">
+      <div class="flex flex-row items-center justify-between pb-2">
+        <h3 class="text-sm font-medium">Productions Clôturées</h3>
+        <lucide-icon name="activity" class="size-4 text-gray-500"></lucide-icon>
+      </div>
+      <div>
+        <div class="text-2xl font-bold text-green-600">{{ ofClotures.length }}</div>
+        <p class="text-xs text-gray-500 mt-1">OF terminés avec rendements</p>
+      </div>
+    </div>
+    
+    <div class="rounded-xl border bg-white text-gray-900 shadow-sm p-6">
+      <div class="flex flex-row items-center justify-between pb-2">
+        <h3 class="text-sm font-medium">Total Paddy Consommé</h3>
+        <lucide-icon name="bar-chart-3" class="size-4 text-gray-500"></lucide-icon>
+      </div>
+      <div>
+        <div class="text-2xl font-bold text-amber-600">{{ getTotalPaddy() | number }} kg</div>
+        <p class="text-xs text-gray-500 mt-1">Matière première transformée</p>
+      </div>
+    </div>
+
+    <div class="rounded-xl border bg-white text-gray-900 shadow-sm p-6">
+      <div class="flex flex-row items-center justify-between pb-2">
+        <h3 class="text-sm font-medium">Total Riz Blanc Obtenu</h3>
+        <lucide-icon name="pie-chart" class="size-4 text-gray-500"></lucide-icon>
+      </div>
+      <div>
+        <div class="text-2xl font-bold text-blue-600">{{ getTotalRizBlanc() | number }} kg</div>
+        <p class="text-xs text-gray-500 mt-1">4 produits principaux réunis</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="rounded-xl border bg-white text-gray-900 shadow-sm overflow-hidden">
+    <div class="flex flex-col space-y-1.5 p-6 border-b">
+      <h3 class="font-semibold leading-none tracking-tight text-lg">Tableau Récapitulatif des 6 Produits par Ordre de Fabrication</h3>
+      <p class="text-sm text-gray-500">Affichage détaillé : Riz Entier, Intermédiaire, Brisé, Fine Brisure, Son de riz et Balle de riz.</p>
+    </div>
+    <div class="p-6">
+      <div *ngIf="isLoading" class="py-8 text-center text-gray-500">Chargement des données...</div>
+      
+      <div *ngIf="!isLoading" class="relative w-full overflow-auto">
+        <table class="w-full caption-bottom text-sm">
+          <thead class="bg-gray-50/75 border-b">
+            <tr class="text-left text-xs font-semibold uppercase tracking-wider text-gray-500">
+              <th class="py-3 px-3">N° OF</th>
+              <th class="py-3 px-3">Date</th>
+              <th class="py-3 px-3">Client</th>
+              <th class="py-3 px-3 text-right">Paddy</th>
+              <th class="py-3 px-3 text-right">Riz Entier</th>
+              <th class="py-3 px-3 text-right">Riz Interm.</th>
+              <th class="py-3 px-3 text-right">Riz Brisé</th>
+              <th class="py-3 px-3 text-right">Fine Brisure</th>
+              <th class="py-3 px-3 text-right font-bold text-emerald-700 bg-emerald-50/50">Ratio 4 Produits</th>
+              <th class="py-3 px-3 text-right">Son de Riz</th>
+              <th class="py-3 px-3 text-right">Balle</th>
+              <th class="py-3 px-3 text-right font-bold text-gray-900 bg-gray-100/50">Rendement Usine</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-gray-100 text-xs">
+            <tr *ngFor="let of of ofClotures" class="hover:bg-gray-50/50 transition-colors">
+              <ng-container *ngIf="of.resultats as r">
+                <td class="py-3 px-3 font-mono font-semibold text-gray-700">{{ of.numero }}</td>
+                <td class="py-3 px-3 text-gray-500">{{ of.date }}</td>
+                <td class="py-3 px-3 font-medium text-gray-900">{{ of.clientNom }}</td>
+                <td class="py-3 px-3 text-right font-mono font-bold text-amber-700">{{ parseVal(r.paddyConsomme) }} kg</td>
+                
+                <!-- 1. Riz Entier -->
+                <td class="py-3 px-3 text-right">
+                  <div>{{ parseVal(r.rizEntier) }} kg</div>
+                  <div class="text-[10px] text-gray-400">{{ (parseVal(r.paddyConsomme) > 0 ? (parseVal(r.rizEntier) / parseVal(r.paddyConsomme)) * 100 : 0) | number:'1.1-1' }}%</div>
+                </td>
+
+                <!-- 2. Riz Intermédiaire -->
+                <td class="py-3 px-3 text-right">
+                  <div>{{ parseVal(r.rizIntermediaire) }} kg</div>
+                  <div class="text-[10px] text-gray-400">{{ (parseVal(r.paddyConsomme) > 0 ? (parseVal(r.rizIntermediaire) / parseVal(r.paddyConsomme)) * 100 : 0) | number:'1.1-1' }}%</div>
+                </td>
+
+                <!-- 3. Riz Brisé -->
+                <td class="py-3 px-3 text-right">
+                  <div>{{ parseVal(r.rizBrise) }} kg</div>
+                  <div class="text-[10px] text-gray-400">{{ (parseVal(r.paddyConsomme) > 0 ? (parseVal(r.rizBrise) / parseVal(r.paddyConsomme)) * 100 : 0) | number:'1.1-1' }}%</div>
+                </td>
+
+                <!-- 4. Fine Brisure -->
+                <td class="py-3 px-3 text-right">
+                  <div>{{ parseVal(r.fineBrisure) }} kg</div>
+                  <div class="text-[10px] text-gray-400">{{ (parseVal(r.paddyConsomme) > 0 ? (parseVal(r.fineBrisure) / parseVal(r.paddyConsomme)) * 100 : 0) | number:'1.1-1' }}%</div>
+                </td>
+
+                <!-- RATIO 4 PRODUITS -->
+                <td class="py-3 px-3 text-right font-mono font-bold text-emerald-800 bg-emerald-50/70">
+                  {{ (parseVal(r.paddyConsomme) > 0 ? ((parseVal(r.rizEntier) + parseVal(r.rizIntermediaire) + parseVal(r.rizBrise) + parseVal(r.fineBrisure)) / parseVal(r.paddyConsomme)) * 100 : 0) | number:'1.2-2' }} %
+                </td>
+
+                <!-- 5. Son de riz -->
+                <td class="py-3 px-3 text-right">
+                  <div>{{ parseVal(r.sonDeRiz) }} kg</div>
+                  <div class="text-[10px] text-gray-400">{{ (parseVal(r.paddyConsomme) > 0 ? (parseVal(r.sonDeRiz) / parseVal(r.paddyConsomme)) * 100 : 0) | number:'1.1-1' }}%</div>
+                </td>
+
+                <!-- 6. Balle de riz -->
+                <td class="py-3 px-3 text-right">
+                  <div>{{ parseVal(r.balleDeRiz) }} u</div>
+                  <div class="text-[10px] text-gray-400">{{ (parseVal(r.paddyConsomme) > 0 ? (parseVal(r.balleDeRiz) / parseVal(r.paddyConsomme)) * 100 : 0) | number:'1.1-1' }}%</div>
+                </td>
+
+                <!-- RENDEMENT GLOBAL -->
+                <td class="py-3 px-3 text-right font-mono font-black text-gray-900 bg-gray-100/70">
+                  {{ (parseVal(r.paddyConsomme) > 0 ? ((parseVal(r.rizEntier) + parseVal(r.rizIntermediaire) + parseVal(r.rizBrise) + parseVal(r.fineBrisure) + parseVal(r.sonDeRiz)) / parseVal(r.paddyConsomme)) * 100 : 0) | number:'1.2-2' }} %
+                </td>
+              </ng-container>
+            </tr>
+            <tr *ngIf="ofClotures.length === 0">
+              <td colspan="12" class="p-4 align-middle py-8 text-center text-gray-500">
+                Aucun ordre de fabrication clôturé avec des résultats.
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>

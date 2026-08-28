@@ -1,0 +1,89 @@
+<div class="flex min-h-screen bg-white">
+  <!-- Left Side: Image / Brand (hidden on mobile) -->
+  <div class="relative hidden w-0 flex-1 lg:block">
+    <img
+      class="absolute inset-0 h-full w-full object-cover"
+      src="/login-bg.png"
+      alt="Agro ERP Background"
+    />
+    <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent"></div>
+    <div class="absolute bottom-12 left-12 right-12 text-white">
+      <h2 class="text-4xl font-bold tracking-tight mb-2">GIE LAWTAN</h2>
+      <p class="text-lg text-white/80 max-w-lg">
+        L'excellence agro-industrielle de la vallée du fleuve Sénégal. Système de gestion intégré pour le pilotage de la production et des stocks.
+      </p>
+    </div>
+  </div>
+
+  <!-- Right Side: Login Form -->
+  <div class="flex flex-1 flex-col justify-center px-4 py-12 sm:px-6 lg:flex-none lg:w-[480px] lg:px-20 xl:w-[560px]">
+    <div class="mx-auto w-full max-w-sm">
+      <div class="text-center lg:text-left">
+        <span class="inline-flex size-14 items-center justify-center rounded-2xl bg-primary/10 text-primary mb-6 lg:mx-0 mx-auto shadow-sm">
+          <lucide-icon name="leaf" class="size-7"></lucide-icon>
+        </span>
+        <h2 class="text-3xl font-bold tracking-tight text-foreground">Bienvenue</h2>
+        <p class="mt-2 text-sm text-gray-500">Connectez-vous pour accéder à votre espace de gestion.</p>
+      </div>
+
+      <div class="mt-10">
+        <form class="space-y-6" (ngSubmit)="onSubmit()">
+          @if (error) {
+            <div class="rounded-xl bg-destructive/15 p-4 border border-destructive/20">
+              <div class="flex">
+                <div class="flex-shrink-0">
+                  <lucide-icon name="user-round" class="size-5 text-destructive"></lucide-icon>
+                </div>
+                <div class="ml-3">
+                  <h3 class="text-sm font-medium text-destructive">{{ error }}</h3>
+                </div>
+              </div>
+            </div>
+          }
+
+          <div class="space-y-5">
+            <div>
+              <label for="username" class="block text-sm font-medium leading-6 text-foreground">Identifiant</label>
+              <div class="mt-2">
+                <input
+                  id="username"
+                  name="username"
+                  type="text"
+                  required
+                  [(ngModel)]="username"
+                  class="block w-full rounded-xl border border-input py-3.5 px-4 text-foreground shadow-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary sm:text-sm transition-all duration-200 bg-background hover:bg-accent/10"
+                  placeholder="Saisissez votre identifiant"
+                />
+              </div>
+            </div>
+
+            <div>
+              <label for="password" class="block text-sm font-medium leading-6 text-foreground">Mot de passe</label>
+              <div class="mt-2">
+                <input
+                  id="password"
+                  name="password"
+                  type="password"
+                  required
+                  [(ngModel)]="password"
+                  class="block w-full rounded-xl border border-input py-3.5 px-4 text-foreground shadow-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary sm:text-sm transition-all duration-200 bg-background hover:bg-accent/10"
+                  placeholder="••••••••"
+                />
+              </div>
+            </div>
+          </div>
+
+          <div class="pt-2">
+            <button
+              type="submit"
+              [disabled]="isLoading"
+              class="flex w-full justify-center rounded-xl bg-primary px-3 py-3.5 text-sm font-semibold text-primary-foreground shadow-md hover:bg-primary/90 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
+            >
+              {{ isLoading ? 'Connexion en cours...' : 'Se connecter' }}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>

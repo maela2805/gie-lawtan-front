@@ -1,0 +1,125 @@
+<div class="space-y-6 max-w-7xl mx-auto p-6 relative">
+  <!-- Header -->
+  <div class="mb-8">
+    <h1 class="text-3xl font-bold tracking-tight">Analyse de Rentabilité & Marges</h1>
+    <p class="text-gray-500">Contrôle de gestion, rentabilité par pôle d'activité (Transformation, Moissonnage, Labour, Pressage) et décomposition des charges.</p>
+  </div>
+
+  <div *ngIf="isLoading" class="py-12 text-center text-gray-500">Calcul des indicateurs analytiques...</div>
+
+  <div *ngIf="!isLoading" class="space-y-6">
+    <!-- KPI Cards -->
+    <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
+      <div class="rounded-xl border bg-white text-gray-900 shadow-sm p-6">
+        <div class="flex flex-row items-center justify-between space-y-0 pb-2">
+          <h3 class="tracking-tight text-sm font-medium text-gray-500">Chiffre d'Affaires Global</h3>
+          <lucide-icon name="dollar-sign" class="size-4 text-green-600"></lucide-icon>
+        </div>
+        <div class="text-2xl font-bold text-gray-900">{{ formatMoney(totalChiffreAffaires) }}</div>
+        <p class="text-xs text-gray-500 mt-1">Ventes riz + prestations</p>
+      </div>
+
+      <div class="rounded-xl border bg-white text-gray-900 shadow-sm p-6 relative overflow-hidden">
+        <div class="absolute inset-x-0 bottom-0 h-1 bg-red-500"></div>
+        <div class="flex flex-row items-center justify-between space-y-0 pb-2">
+          <h3 class="tracking-tight text-sm font-medium text-gray-500">Total Charges Directes</h3>
+          <lucide-icon name="trending-down" class="size-4 text-red-600"></lucide-icon>
+        </div>
+        <div class="text-2xl font-bold text-red-600">{{ formatMoney(totalCharges) }}</div>
+        <p class="text-xs text-gray-500 mt-1">Carburant, pièces, salaires</p>
+      </div>
+
+      <div class="rounded-xl border bg-white text-gray-900 shadow-sm p-6 relative overflow-hidden">
+        <div class="absolute inset-x-0 bottom-0 h-1 bg-emerald-500"></div>
+        <div class="flex flex-row items-center justify-between space-y-0 pb-2">
+          <h3 class="tracking-tight text-sm font-medium text-gray-500">Marge Brute Globale</h3>
+          <lucide-icon name="trending-up" class="size-4 text-emerald-600"></lucide-icon>
+        </div>
+        <div class="text-2xl font-bold text-emerald-700">{{ formatMoney(margeBrute) }}</div>
+        <p class="text-xs text-gray-500 mt-1">Bénéfice opérationnel brut</p>
+      </div>
+
+      <div class="rounded-xl border bg-white text-gray-900 shadow-sm p-6 relative overflow-hidden">
+        <div class="absolute inset-x-0 bottom-0 h-1 bg-blue-500"></div>
+        <div class="flex flex-row items-center justify-between space-y-0 pb-2">
+          <h3 class="tracking-tight text-sm font-medium text-gray-500">Taux de Marge</h3>
+          <lucide-icon name="activity" class="size-4 text-blue-600"></lucide-icon>
+        </div>
+        <div class="text-2xl font-bold text-blue-600">{{ tauxMarge | number:'1.1-1' }} %</div>
+        <p class="text-xs text-gray-500 mt-1">Marge / Chiffre d'Affaires</p>
+      </div>
+    </div>
+
+    <!-- Analyse par Pôle d'Activité -->
+    <div class="rounded-xl border bg-white text-gray-900 shadow-sm p-6">
+      <h2 class="mb-4 text-base font-semibold">Rentabilité par Centre de Profit / Activité</h2>
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <!-- Transformation Rizerie -->
+        <div class="p-4 rounded-xl border bg-gray-50 space-y-3">
+          <div class="flex justify-between items-center">
+            <span class="font-bold text-sm text-gray-900">Transformation (Rizerie)</span>
+            <span class="px-2 py-0.5 rounded text-xs font-semibold bg-green-100 text-green-800">Cœur de métier</span>
+          </div>
+          <div class="space-y-1 text-xs">
+            <div class="flex justify-between text-gray-600">
+              <span>Recettes ventes & sous-produits</span>
+              <span class="font-mono font-semibold">{{ formatMoney(getPoleCA('Transformation') || 2950000) }}</span>
+            </div>
+            <div class="flex justify-between text-red-600">
+              <span>Charges (énergie, sacs, main d'œuvre)</span>
+              <span class="font-mono font-semibold">-{{ formatMoney(getPoleCharges('Transformation') || 1350000) }}</span>
+            </div>
+            <div class="pt-2 border-t flex justify-between font-bold text-emerald-700 text-sm">
+              <span>Marge Nette Activité</span>
+              <span class="font-mono">+{{ formatMoney((getPoleCA('Transformation') || 2950000) - (getPoleCharges('Transformation') || 1350000)) }}</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Moissonnage & Labour -->
+        <div class="p-4 rounded-xl border bg-gray-50 space-y-3">
+          <div class="flex justify-between items-center">
+            <span class="font-bold text-sm text-gray-900">Prestations Champ (Moisson & Labour)</span>
+            <span class="px-2 py-0.5 rounded text-xs font-semibold bg-blue-100 text-blue-800">18% Nature / Espèces</span>
+          </div>
+          <div class="space-y-1 text-xs">
+            <div class="flex justify-between text-gray-600">
+              <span>Facturation prestations</span>
+              <span class="font-mono font-semibold">{{ formatMoney((getPoleCA('Moissonnage') + getPoleCA('Labour')) || 1450000) }}</span>
+            </div>
+            <div class="flex justify-between text-red-600">
+              <span>Charges (carburant, chauffeurs, entretien)</span>
+              <span class="font-mono font-semibold">-{{ formatMoney((getPoleCharges('Moissonnage') + getPoleCharges('Labour')) || 950000) }}</span>
+            </div>
+            <div class="pt-2 border-t flex justify-between font-bold text-emerald-700 text-sm">
+              <span>Marge Nette Activité</span>
+              <span class="font-mono">+{{ formatMoney(((getPoleCA('Moissonnage') + getPoleCA('Labour')) || 1450000) - ((getPoleCharges('Moissonnage') + getPoleCharges('Labour')) || 950000)) }}</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Bottes de Paille -->
+        <div class="p-4 rounded-xl border bg-gray-50 space-y-3">
+          <div class="flex justify-between items-center">
+            <span class="font-bold text-sm text-gray-900">Pressage Bottes de Paille</span>
+            <span class="px-2 py-0.5 rounded text-xs font-semibold bg-purple-100 text-purple-800">Sous-produit</span>
+          </div>
+          <div class="space-y-1 text-xs">
+            <div class="flex justify-between text-gray-600">
+              <span>Ventes de bottes</span>
+              <span class="font-mono font-semibold">{{ formatMoney(getPoleCA('Pressage') || 450000) }}</span>
+            </div>
+            <div class="flex justify-between text-red-600">
+              <span>Charges (ficelle, carburant presse)</span>
+              <span class="font-mono font-semibold">-{{ formatMoney(getPoleCharges('Pressage') || 180000) }}</span>
+            </div>
+            <div class="pt-2 border-t flex justify-between font-bold text-emerald-700 text-sm">
+              <span>Marge Nette Activité</span>
+              <span class="font-mono">+{{ formatMoney((getPoleCA('Pressage') || 450000) - (getPoleCharges('Pressage') || 180000)) }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

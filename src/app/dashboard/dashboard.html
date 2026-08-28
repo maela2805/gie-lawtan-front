@@ -1,0 +1,195 @@
+<div class="mx-auto max-w-7xl p-5 space-y-5">
+  <!-- Banner d'accueil dynamique -->
+  <div class="relative overflow-hidden rounded-xl bg-gradient-to-r from-emerald-800 via-emerald-700 to-teal-800 p-5 text-white shadow-sm">
+    <div class="relative z-10 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+      <div class="space-y-1">
+        <div class="inline-flex items-center gap-1.5 rounded-md bg-white/15 px-2.5 py-0.5 text-xs font-bold backdrop-blur-md text-emerald-100 border border-white/20">
+          <lucide-icon name="sparkles" class="size-3.5 text-amber-300"></lucide-icon>
+          Saison Rizerie & Campagne 2026
+        </div>
+        <h1 class="text-2xl md:text-3xl font-extrabold tracking-tight text-white font-display">
+          Tableau de Bord Exécutif
+        </h1>
+        <p class="text-emerald-100/90 text-xs max-w-xl">
+          Supervision temps réel des transformations, des rendements de décorticage et des stocks clients.
+        </p>
+      </div>
+
+      <div class="flex items-center gap-2.5 shrink-0">
+        <a routerLink="/production/of" class="inline-flex items-center gap-2 rounded-lg bg-white px-3.5 py-2 text-xs font-bold text-emerald-900 shadow-sm hover:bg-emerald-50 transition-all cursor-pointer">
+          <lucide-icon name="factory" class="size-4 text-emerald-600"></lucide-icon>
+          Lancer un OF
+        </a>
+        <a routerLink="/production/cloture" class="inline-flex items-center gap-2 rounded-lg bg-amber-400 px-3.5 py-2 text-xs font-bold text-amber-950 shadow-sm hover:bg-amber-300 transition-all cursor-pointer">
+          <lucide-icon name="package-check" class="size-4"></lucide-icon>
+          Clôturer Rendement
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <div *ngIf="isLoading" class="py-12 text-center text-gray-500 bg-white rounded-lg border">
+    Chargement des indicateurs...
+  </div>
+
+  <div *ngIf="!isLoading" class="space-y-5">
+    <!-- 4 KPI Cards avec bordures affinées -->
+    <section class="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
+      <!-- 1. Chiffre d'Affaires -->
+      <div class="rounded-lg border border-gray-200 bg-white p-4.5 shadow-xs hover:border-emerald-300 transition-colors">
+        <div class="flex items-center justify-between pb-2.5">
+          <span class="text-xs font-semibold uppercase tracking-wider text-gray-500">Chiffre d'Affaires Global</span>
+          <span class="p-2 rounded-md bg-emerald-50 text-emerald-700">
+            <lucide-icon name="trending-up" class="size-4"></lucide-icon>
+          </span>
+        </div>
+        <div class="text-xl font-bold text-gray-900 font-mono tracking-tight">{{ formatMoney(caProduits + caServices) }}</div>
+        <div class="flex items-center justify-between text-xs text-gray-500 mt-2 pt-2 border-t border-gray-100">
+          <span>Produits & Usinage</span>
+          <span class="text-emerald-700 font-bold flex items-center gap-0.5">
+            +18.4% <lucide-icon name="arrow-up-right" class="size-3"></lucide-icon>
+          </span>
+        </div>
+      </div>
+
+      <!-- 2. Rendement Transformation Usine -->
+      <div class="rounded-lg border border-gray-200 bg-white p-4.5 shadow-xs hover:border-emerald-300 transition-colors">
+        <div class="flex items-center justify-between pb-2.5">
+          <span class="text-xs font-semibold uppercase tracking-wider text-gray-500">Rendement Usine Moyen</span>
+          <span class="p-2 rounded-md bg-green-50 text-green-700">
+            <lucide-icon name="factory" class="size-4"></lucide-icon>
+          </span>
+        </div>
+        <div class="text-xl font-bold text-green-700 font-mono tracking-tight">{{ rendement | number:'1.1-2' }} %</div>
+        <div class="flex items-center justify-between text-xs text-gray-500 mt-2 pt-2 border-t border-gray-100">
+          <span>Ratio 4 produits principaux</span>
+          <span class="px-1.5 py-0.5 rounded bg-green-100 text-green-800 font-bold text-[10px]">Optimal</span>
+        </div>
+      </div>
+
+      <!-- 3. Stock Paddy Disponible -->
+      <div class="rounded-lg border border-gray-200 bg-white p-4.5 shadow-xs hover:border-amber-300 transition-colors">
+        <div class="flex items-center justify-between pb-2.5">
+          <span class="text-xs font-semibold uppercase tracking-wider text-gray-500">Stock Paddy Global</span>
+          <span class="p-2 rounded-md bg-amber-50 text-amber-700">
+            <lucide-icon name="wheat" class="size-4"></lucide-icon>
+          </span>
+        </div>
+        <div class="text-xl font-bold text-amber-700 font-mono tracking-tight">{{ (totalStockPaddyKg / 1000) | number:'1.1-1' }} Tonnes</div>
+        <div class="flex items-center justify-between text-xs text-gray-500 mt-2 pt-2 border-t border-gray-100">
+          <span>Stock Clients & Lawtan</span>
+          <span class="text-amber-800 font-semibold font-mono">~480 sacs</span>
+        </div>
+      </div>
+
+      <!-- 4. Alertes de Stock -->
+      <div class="rounded-lg border border-gray-200 bg-white p-4.5 shadow-xs hover:border-rose-300 transition-colors">
+        <div class="flex items-center justify-between pb-2.5">
+          <span class="text-xs font-semibold uppercase tracking-wider text-gray-500">Alertes Seuil Stock</span>
+          <span class="p-2 rounded-md bg-rose-50 text-rose-700">
+            <lucide-icon name="shield-alert" class="size-4"></lucide-icon>
+          </span>
+        </div>
+        <div class="text-xl font-bold text-rose-600 font-mono tracking-tight">{{ alertes.length }}</div>
+        <div class="flex items-center justify-between text-xs text-gray-500 mt-2 pt-2 border-t border-gray-100">
+          <span>Sous seuil minimum</span>
+          <span *ngIf="alertes.length === 0" class="text-emerald-700 font-bold">✓ Stocks sains</span>
+          <span *ngIf="alertes.length > 0" class="text-rose-600 font-bold">À réapprovisionner</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- Sections d'activités & Récapitulatif -->
+    <section class="grid grid-cols-1 gap-5 lg:grid-cols-2">
+      <!-- Récapitulatif des Produits Finis & Rendements -->
+      <div class="rounded-lg border border-gray-200 bg-white p-5 shadow-xs space-y-4">
+        <div class="flex items-center justify-between border-b border-gray-100 pb-3">
+          <div>
+            <h3 class="text-sm font-bold text-gray-900 font-display">Répartition des Produits de Transformation</h3>
+            <p class="text-[11px] text-gray-500">Volumes réels en magasin et valorisation estimée</p>
+          </div>
+          <span class="p-1.5 rounded-md bg-emerald-50 text-emerald-700">
+            <lucide-icon name="bar-chart-3" class="size-4"></lucide-icon>
+          </span>
+        </div>
+
+        <div class="space-y-3">
+          <!-- Riz Entier -->
+          <div class="space-y-1">
+            <div class="flex justify-between text-xs font-medium">
+              <span class="text-gray-800">1. Riz Entier (50% rendement)</span>
+              <span class="text-emerald-700 font-mono font-bold">8 500 kg • 340 sacs</span>
+            </div>
+            <div class="w-full bg-gray-100 rounded-md h-2 overflow-hidden">
+              <div class="bg-emerald-600 h-2 rounded-md" style="width: 50%"></div>
+            </div>
+          </div>
+
+          <!-- Riz Intermédiaire -->
+          <div class="space-y-1">
+            <div class="flex justify-between text-xs font-medium">
+              <span class="text-gray-800">2. Riz Intermédiaire (10% rendement)</span>
+              <span class="text-blue-700 font-mono font-bold">3 400 kg • 136 sacs</span>
+            </div>
+            <div class="w-full bg-gray-100 rounded-md h-2 overflow-hidden">
+              <div class="bg-blue-600 h-2 rounded-md" style="width: 25%"></div>
+            </div>
+          </div>
+
+          <!-- Riz Brisé -->
+          <div class="space-y-1">
+            <div class="flex justify-between text-xs font-medium">
+              <span class="text-gray-800">3. Riz Brisé (5% rendement)</span>
+              <span class="text-indigo-700 font-mono font-bold">4 200 kg • 168 sacs</span>
+            </div>
+            <div class="w-full bg-gray-100 rounded-md h-2 overflow-hidden">
+              <div class="bg-indigo-600 h-2 rounded-md" style="width: 15%"></div>
+            </div>
+          </div>
+
+          <!-- Fine Brisure -->
+          <div class="space-y-1">
+            <div class="flex justify-between text-xs font-medium">
+              <span class="text-gray-800">4. Fine Brisure (3% rendement)</span>
+              <span class="text-purple-700 font-mono font-bold">1 200 kg • 48 sacs</span>
+            </div>
+            <div class="w-full bg-gray-100 rounded-md h-2 overflow-hidden">
+              <div class="bg-purple-600 h-2 rounded-md" style="width: 10%"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Alertes Stocks & État Matériel -->
+      <div class="rounded-lg border border-gray-200 bg-white p-5 shadow-xs space-y-4">
+        <div class="flex items-center justify-between border-b border-gray-100 pb-3">
+          <div>
+            <h3 class="text-sm font-bold text-gray-900 font-display">Alertes & Niveaux de Stock Critiques</h3>
+            <p class="text-[11px] text-gray-500">Articles nécessitant une attention ou commande</p>
+          </div>
+          <span class="p-1.5 rounded-md bg-amber-50 text-amber-700">
+            <lucide-icon name="shield-alert" class="size-4"></lucide-icon>
+          </span>
+        </div>
+
+        <div *ngIf="alertes.length === 0" class="py-8 text-center text-gray-500 space-y-1.5">
+          <lucide-icon name="check-circle-2" class="mx-auto size-8 text-emerald-500"></lucide-icon>
+          <p class="text-xs font-semibold text-gray-800">Tous les stocks sont au-dessus des seuils de sécurité.</p>
+          <p class="text-[11px] text-gray-400">Aucun réapprovisionnement urgent requis.</p>
+        </div>
+
+        <ul *ngIf="alertes.length > 0" class="space-y-2">
+          <li *ngFor="let a of alertes" class="flex items-center justify-between gap-3 rounded-lg bg-rose-50 border border-rose-200 px-3.5 py-2 text-xs">
+            <div>
+              <span class="font-bold text-rose-950 block">{{ a.designation }}</span>
+              <span class="text-[10.5px] text-rose-700">Magasin : {{ a.magasin || 'Principal' }}</span>
+            </div>
+            <span class="inline-flex items-center rounded-md px-2 py-0.5 text-xs font-bold bg-rose-200 text-rose-900 font-mono">
+              {{ a.quantite | number }} / Seuil: {{ a.seuil }} {{ a.unite }}
+            </span>
+          </li>
+        </ul>
+      </div>
+    </section>
+  </div>
+</div>

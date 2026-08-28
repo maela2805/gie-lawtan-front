@@ -1,0 +1,223 @@
+<div class="space-y-6 max-w-7xl mx-auto p-6 relative">
+  <!-- Header -->
+  <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+    <div>
+      <h1 class="text-3xl font-bold tracking-tight">Maintenance & Suivi Technique</h1>
+      <p class="text-gray-500">Journal d'entretien, révisions périodiques (vidanges 250h) et réparations d'engins.</p>
+    </div>
+    <button (click)="openCreateModal()" class="inline-flex items-center justify-center rounded-lg text-sm font-medium bg-green-600 text-white hover:bg-green-700 h-10 px-4 py-2 gap-2 shadow-sm transition-colors">
+      <lucide-icon name="plus" class="size-4"></lucide-icon>
+      Nouvelle Révision / Réparation
+    </button>
+  </div>
+
+  <!-- KPI Cards -->
+  <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+    <div class="rounded-xl border bg-white text-gray-900 shadow-sm p-5">
+      <div class="flex items-center justify-between pb-2">
+        <span class="text-sm font-medium text-gray-500">Total Interventions</span>
+        <span class="p-2 rounded-lg bg-gray-100 text-gray-700">
+          <lucide-icon name="wrench" class="size-4"></lucide-icon>
+        </span>
+      </div>
+      <div class="text-2xl font-bold">{{ totalMaintenances }}</div>
+      <p class="text-xs text-gray-500 mt-1">Opérations enregistrées</p>
+    </div>
+
+    <div class="rounded-xl border bg-white text-gray-900 shadow-sm p-5 relative overflow-hidden">
+      <div class="absolute inset-x-0 bottom-0 h-1 bg-red-500"></div>
+      <div class="flex items-center justify-between pb-2">
+        <span class="text-sm font-medium text-gray-500">Coût Total Entretien</span>
+        <span class="p-2 rounded-lg bg-red-50 text-red-600">
+          <lucide-icon name="alert-triangle" class="size-4"></lucide-icon>
+        </span>
+      </div>
+      <div class="text-2xl font-bold text-gray-900">{{ formatMoney(totalCout) }}</div>
+      <p class="text-xs text-gray-500 mt-1">Pièces + Main d'œuvre</p>
+    </div>
+
+    <div class="rounded-xl border bg-white text-gray-900 shadow-sm p-5 relative overflow-hidden">
+      <div class="absolute inset-x-0 bottom-0 h-1 bg-amber-500"></div>
+      <div class="flex items-center justify-between pb-2">
+        <span class="text-sm font-medium text-gray-500">Alertes Dépassement</span>
+        <span class="p-2 rounded-lg bg-amber-50 text-amber-600">
+          <lucide-icon name="alert-triangle" class="size-4"></lucide-icon>
+        </span>
+      </div>
+      <div class="text-2xl font-bold text-amber-600">{{ machinesEnAlerte.length }}</div>
+      <p class="text-xs text-gray-500 mt-1">Engins ayant atteint le seuil</p>
+    </div>
+
+    <div class="rounded-xl border bg-white text-gray-900 shadow-sm p-5 relative overflow-hidden">
+      <div class="absolute inset-x-0 bottom-0 h-1 bg-blue-500"></div>
+      <div class="flex items-center justify-between pb-2">
+        <span class="text-sm font-medium text-gray-500">Immobilisation</span>
+        <span class="p-2 rounded-lg bg-blue-50 text-blue-600">
+          <lucide-icon name="clock" class="size-4"></lucide-icon>
+        </span>
+      </div>
+      <div class="text-2xl font-bold text-blue-600">{{ totalHeuresImmobilisation }} h</div>
+      <p class="text-xs text-gray-500 mt-1">Temps total à l'arrêt</p>
+    </div>
+  </div>
+
+  <!-- Alert Section if machines have exceeded threshold -->
+  <div *ngIf="machinesEnAlerte.length > 0" class="p-4 rounded-xl border border-amber-200 bg-amber-50 text-amber-900 flex items-start gap-3">
+    <lucide-icon name="alert-triangle" class="size-5 text-amber-600 shrink-0 mt-0.5"></lucide-icon>
+    <div class="text-xs">
+      <div class="font-bold">Alerte Maintenance Préventive</div>
+      <p class="mt-0.5 text-amber-800">Les machines suivantes ont atteint ou dépassé leur quota d'heures de service :</p>
+      <div class="mt-2 flex flex-wrap gap-2">
+        <span *ngFor="let m of machinesEnAlerte" class="px-2 py-1 bg-amber-200 rounded font-mono font-semibold text-amber-900">
+          {{ m.designation }} (Compteur: {{ m.compteurHoraire }}h / Seuil: {{ m.prochaineMaintenance }}h)
+        </span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Filters & Search -->
+  <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 bg-white p-4 rounded-xl border">
+    <div class="flex items-center gap-2 overflow-x-auto">
+      <button 
+        *ngFor="let t of types" 
+        (click)="selectedType = t" 
+        [class]="selectedType === t ? 'bg-green-600 text-white font-medium' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'"
+        class="px-3 py-1.5 rounded-lg text-xs transition-colors shrink-0">
+        {{ t }}
+      </button>
+    </div>
+    <div class="relative w-full sm:w-64">
+      <input 
+        type="text" 
+        [(ngModel)]="searchTerm" 
+        placeholder="Rechercher une opération..." 
+        class="w-full h-9 pl-9 pr-3 text-xs rounded-lg border border-gray-200 focus:outline-none focus:ring-1 focus:ring-green-600">
+      <lucide-icon name="search" class="size-4 text-gray-400 absolute left-3 top-2.5"></lucide-icon>
+    </div>
+  </div>
+
+  <!-- Data Table -->
+  <div class="rounded-xl border bg-white text-gray-900 shadow-sm overflow-hidden">
+    <div *ngIf="isLoading" class="py-12 text-center text-gray-500">Chargement de l'historique de maintenance...</div>
+
+    <div *ngIf="!isLoading" class="overflow-x-auto">
+      <table class="w-full caption-bottom text-sm">
+        <thead class="bg-gray-50/75 border-b">
+          <tr class="text-left text-xs font-semibold uppercase tracking-wider text-gray-500">
+            <th class="py-3 px-4">Date</th>
+            <th class="py-3 px-4">Machine</th>
+            <th class="py-3 px-4">Type</th>
+            <th class="py-3 px-4">Description de l'Opération</th>
+            <th class="py-3 px-4">Pièces Changées</th>
+            <th class="py-3 px-4 text-right">Coût Total</th>
+            <th class="py-3 px-4">Intervenant</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-gray-100">
+          <tr *ngFor="let item of paginatedMaintenances" class="hover:bg-gray-50/50 transition-colors">
+            <td class="py-3.5 px-4 text-xs text-gray-600 font-mono">{{ item.date }}</td>
+            <td class="py-3.5 px-4 font-semibold text-gray-800">{{ item.machineNom }}</td>
+            <td class="py-3.5 px-4">
+              <span *ngIf="item.type === 'Préventive'" class="inline-flex items-center px-2 py-0.5 rounded text-xs font-semibold bg-green-100 text-green-800">
+                Préventive
+              </span>
+              <span *ngIf="item.type === 'Corrective'" class="inline-flex items-center px-2 py-0.5 rounded text-xs font-semibold bg-rose-100 text-rose-800">
+                Corrective
+              </span>
+            </td>
+            <td class="py-3.5 px-4 text-xs text-gray-700 max-w-xs truncate">{{ item.description }}</td>
+            <td class="py-3.5 px-4 text-xs text-gray-500 max-w-xs truncate">{{ item.piecesRemplacees || '-' }}</td>
+            <td class="py-3.5 px-4 text-right font-mono text-xs font-semibold text-gray-900">
+              {{ formatMoney((item.coutPieces || 0) + (item.coutMainOeuvre || 0)) }}
+            </td>
+            <td class="py-3.5 px-4 text-xs text-gray-600">{{ item.responsable || '-' }}</td>
+          </tr>
+          <tr *ngIf="filteredMaintenances.length === 0">
+            <td colspan="7" class="py-8 text-center text-sm text-gray-500">
+              Aucune fiche de maintenance enregistrée.
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <app-pagination 
+      [totalItems]="filteredMaintenances.length" 
+      [pageSize]="pageSize" 
+      [currentPage]="currentPage" 
+      (pageChange)="currentPage = $event" 
+      (pageSizeChange)="pageSize = $event">
+    </app-pagination>
+  </div>
+
+  <!-- Modal Creation -->
+  <div *ngIf="openModal" class="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4">
+    <div class="bg-white rounded-xl shadow-xl w-full max-w-lg overflow-hidden flex flex-col max-h-[90vh]">
+      <div class="p-6 border-b">
+        <h2 class="text-lg font-bold">Fiche d'Entretien / Réparation</h2>
+        <p class="text-xs text-gray-500">Saisir les détails de l'intervention technique sur l'engin.</p>
+      </div>
+
+      <form (ngSubmit)="handleSubmit()" class="p-6 space-y-4 overflow-y-auto">
+        <div class="grid grid-cols-2 gap-4">
+          <div class="space-y-1">
+            <label class="text-xs font-medium text-gray-700">Machine</label>
+            <select [(ngModel)]="formData.machineId" name="machineId" required class="w-full h-10 px-3 text-sm rounded-lg border border-gray-200 focus:ring-1 focus:ring-green-600">
+              <option *ngFor="let m of machines" [value]="m.id">{{ m.designation }}</option>
+            </select>
+          </div>
+          <div class="space-y-1">
+            <label class="text-xs font-medium text-gray-700">Type d'Intervention</label>
+            <select [(ngModel)]="formData.type" name="type" required class="w-full h-10 px-3 text-sm rounded-lg border border-gray-200 focus:ring-1 focus:ring-green-600">
+              <option value="Préventive">Préventive (Vidange/Révision)</option>
+              <option value="Corrective">Corrective (Panne/Réparation)</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-4">
+          <div class="space-y-1">
+            <label class="text-xs font-medium text-gray-700">Date</label>
+            <input type="date" [(ngModel)]="formData.date" name="date" required class="w-full h-10 px-3 text-sm rounded-lg border border-gray-200 focus:ring-1 focus:ring-green-600">
+          </div>
+          <div class="space-y-1">
+            <label class="text-xs font-medium text-gray-700">Responsable / Mécanicien</label>
+            <input type="text" [(ngModel)]="formData.responsable" name="responsable" required class="w-full h-10 px-3 text-sm rounded-lg border border-gray-200 focus:ring-1 focus:ring-green-600">
+          </div>
+        </div>
+
+        <div class="space-y-1">
+          <label class="text-xs font-medium text-gray-700">Description des Travaux</label>
+          <textarea [(ngModel)]="formData.description" name="description" rows="2" required placeholder="Travaux réalisés..." class="w-full p-3 text-sm rounded-lg border border-gray-200 focus:ring-1 focus:ring-green-600"></textarea>
+        </div>
+
+        <div class="space-y-1">
+          <label class="text-xs font-medium text-gray-700">Pièces / Consommables Remplacés</label>
+          <input type="text" [(ngModel)]="formData.piecesRemplacees" name="piecesRemplacees" placeholder="ex: Filtres, courroies, huile 15W40..." class="w-full h-10 px-3 text-sm rounded-lg border border-gray-200 focus:ring-1 focus:ring-green-600">
+        </div>
+
+        <div class="grid grid-cols-3 gap-3">
+          <div class="space-y-1">
+            <label class="text-xs font-medium text-gray-700">Coût Pièces (CFA)</label>
+            <input type="number" min="0" step="500" [(ngModel)]="formData.coutPieces" name="coutPieces" required class="w-full h-10 px-3 text-sm rounded-lg border border-gray-200 focus:ring-1 focus:ring-green-600">
+          </div>
+          <div class="space-y-1">
+            <label class="text-xs font-medium text-gray-700">Main d'œuvre (CFA)</label>
+            <input type="number" min="0" step="500" [(ngModel)]="formData.coutMainOeuvre" name="coutMainOeuvre" required class="w-full h-10 px-3 text-sm rounded-lg border border-gray-200 focus:ring-1 focus:ring-green-600">
+          </div>
+          <div class="space-y-1">
+            <label class="text-xs font-medium text-gray-700">Arrêt (heures)</label>
+            <input type="number" min="0" step="0.5" [(ngModel)]="formData.dureeImmobilisation" name="dureeImmobilisation" required class="w-full h-10 px-3 text-sm rounded-lg border border-gray-200 focus:ring-1 focus:ring-green-600">
+          </div>
+        </div>
+
+        <div class="flex justify-end gap-2 pt-4 border-t">
+          <button type="button" (click)="openModal = false" class="px-4 py-2 rounded-lg text-sm border border-gray-200 hover:bg-gray-50">Annuler</button>
+          <button type="submit" [disabled]="isSubmitting" class="px-4 py-2 rounded-lg text-sm bg-green-600 text-white font-medium hover:bg-green-700 disabled:opacity-50">
+            {{ isSubmitting ? 'Enregistrement...' : 'Enregistrer la Fiche' }}
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>

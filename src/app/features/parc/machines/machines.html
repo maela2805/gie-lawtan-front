@@ -1,0 +1,229 @@
+<div class="space-y-6 max-w-7xl mx-auto p-6 relative">
+  <!-- Header -->
+  <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+    <div>
+      <h1 class="text-3xl font-bold tracking-tight">Parc Matériel & Engins</h1>
+      <p class="text-gray-500">Gestion des tracteurs, moissonneuses, presses et lignes de décorticage.</p>
+    </div>
+    <button (click)="openCreateModal()" class="inline-flex items-center justify-center rounded-lg text-sm font-medium bg-green-600 text-white hover:bg-green-700 h-10 px-4 py-2 gap-2 shadow-sm transition-colors">
+      <lucide-icon name="plus" class="size-4"></lucide-icon>
+      Ajouter une machine
+    </button>
+  </div>
+
+  <!-- KPI Cards -->
+  <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+    <div class="rounded-xl border bg-white text-gray-900 shadow-sm p-5">
+      <div class="flex items-center justify-between pb-2">
+        <span class="text-sm font-medium text-gray-500">Total Parc</span>
+        <span class="p-2 rounded-lg bg-gray-100 text-gray-700">
+          <lucide-icon name="tractor" class="size-4"></lucide-icon>
+        </span>
+      </div>
+      <div class="text-2xl font-bold">{{ totalMachines }}</div>
+      <p class="text-xs text-gray-500 mt-1">Engins & équipements actifs</p>
+    </div>
+
+    <div class="rounded-xl border bg-white text-gray-900 shadow-sm p-5 relative overflow-hidden">
+      <div class="absolute inset-x-0 bottom-0 h-1 bg-green-500"></div>
+      <div class="flex items-center justify-between pb-2">
+        <span class="text-sm font-medium text-gray-500">Disponibles</span>
+        <span class="p-2 rounded-lg bg-green-50 text-green-600">
+          <lucide-icon name="check-circle-2" class="size-4"></lucide-icon>
+        </span>
+      </div>
+      <div class="text-2xl font-bold text-green-600">{{ disponibles }}</div>
+      <p class="text-xs text-gray-500 mt-1">Prêts pour mission</p>
+    </div>
+
+    <div class="rounded-xl border bg-white text-gray-900 shadow-sm p-5 relative overflow-hidden">
+      <div class="absolute inset-x-0 bottom-0 h-1 bg-blue-500"></div>
+      <div class="flex items-center justify-between pb-2">
+        <span class="text-sm font-medium text-gray-500">En Activité</span>
+        <span class="p-2 rounded-lg bg-blue-50 text-blue-600">
+          <lucide-icon name="tractor" class="size-4"></lucide-icon>
+        </span>
+      </div>
+      <div class="text-2xl font-bold text-blue-600">{{ enActivite }}</div>
+      <p class="text-xs text-gray-500 mt-1">En prestation / usine</p>
+    </div>
+
+    <div class="rounded-xl border bg-white text-gray-900 shadow-sm p-5 relative overflow-hidden">
+      <div class="absolute inset-x-0 bottom-0 h-1 bg-amber-500"></div>
+      <div class="flex items-center justify-between pb-2">
+        <span class="text-sm font-medium text-gray-500">Maintenance / Panne</span>
+        <span class="p-2 rounded-lg bg-amber-50 text-amber-600">
+          <lucide-icon name="wrench" class="size-4"></lucide-icon>
+        </span>
+      </div>
+      <div class="text-2xl font-bold text-amber-600">{{ enAlerte }}</div>
+      <p class="text-xs text-gray-500 mt-1">Nécessite intervention</p>
+    </div>
+  </div>
+
+  <!-- Filters & Search -->
+  <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 bg-white p-4 rounded-xl border">
+    <div class="flex items-center gap-2 overflow-x-auto">
+      <button 
+        *ngFor="let cat of categories" 
+        (click)="selectedCategory = cat" 
+        [class]="selectedCategory === cat ? 'bg-green-600 text-white font-medium' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'"
+        class="px-3 py-1.5 rounded-lg text-xs transition-colors shrink-0">
+        {{ cat }}
+      </button>
+    </div>
+    <div class="relative w-full sm:w-64">
+      <input 
+        type="text" 
+        [(ngModel)]="searchTerm" 
+        placeholder="Rechercher une machine..." 
+        class="w-full h-9 pl-9 pr-3 text-xs rounded-lg border border-gray-200 focus:outline-none focus:ring-1 focus:ring-green-600">
+      <lucide-icon name="search" class="size-4 text-gray-400 absolute left-3 top-2.5"></lucide-icon>
+    </div>
+  </div>
+
+  <!-- Data Table -->
+  <div class="rounded-xl border bg-white text-gray-900 shadow-sm overflow-hidden">
+    <div *ngIf="isLoading" class="py-12 text-center text-gray-500">Chargement du parc matériel...</div>
+
+    <div *ngIf="!isLoading" class="overflow-x-auto">
+      <table class="w-full caption-bottom text-sm">
+        <thead class="bg-gray-50/75 border-b">
+          <tr class="text-left text-xs font-semibold uppercase tracking-wider text-gray-500">
+            <th class="py-3 px-4">Code / N° Inv</th>
+            <th class="py-3 px-4">Désignation</th>
+            <th class="py-3 px-4">Catégorie</th>
+            <th class="py-3 px-4">Marque & Modèle</th>
+            <th class="py-3 px-4 text-right">Heures Moteur</th>
+            <th class="py-3 px-4 text-right">Prochaine Maint.</th>
+            <th class="py-3 px-4 text-center">Statut</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-gray-100">
+          <tr *ngFor="let m of paginatedMachines" class="hover:bg-gray-50/50 transition-colors">
+            <td class="py-3.5 px-4 font-medium text-gray-900">
+              <span class="font-mono text-xs font-semibold px-2 py-1 bg-gray-100 rounded text-gray-700">{{ m.codeInterne || m.numeroInventaire }}</span>
+            </td>
+            <td class="py-3.5 px-4 font-semibold text-gray-800">{{ m.designation }}</td>
+            <td class="py-3.5 px-4 text-gray-600 text-xs">{{ m.categorie }}</td>
+            <td class="py-3.5 px-4 text-gray-500 text-xs">{{ m.marque || '-' }} {{ m.modele || '' }}</td>
+            <td class="py-3.5 px-4 text-right font-mono text-xs font-semibold">{{ m.compteurHoraire || 0 }} h</td>
+            <td class="py-3.5 px-4 text-right font-mono text-xs text-gray-600">
+              {{ m.prochaineMaintenance || 250 }} h
+              <span *ngIf="m.compteurHoraire >= m.prochaineMaintenance" class="ml-1 text-red-500 font-bold">⚠️</span>
+            </td>
+            <td class="py-3.5 px-4 text-center">
+              <span *ngIf="m.statut === 'Disponible'" class="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold bg-green-100 text-green-800">
+                Disponible
+              </span>
+              <span *ngIf="m.statut === 'En prestation'" class="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold bg-blue-100 text-blue-800">
+                En prestation
+              </span>
+              <span *ngIf="m.statut === 'En production'" class="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold bg-purple-100 text-purple-800">
+                En production
+              </span>
+              <span *ngIf="m.statut === 'En maintenance' || m.statut === 'En panne'" class="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold bg-amber-100 text-amber-800">
+                {{ m.statut }}
+              </span>
+              <span *ngIf="m.statut !== 'Disponible' && m.statut !== 'En prestation' && m.statut !== 'En production' && m.statut !== 'En maintenance' && m.statut !== 'En panne'" class="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold bg-gray-100 text-gray-800">
+                {{ m.statut }}
+              </span>
+            </td>
+          </tr>
+          <tr *ngIf="filteredMachines.length === 0">
+            <td colspan="7" class="py-8 text-center text-sm text-gray-500">
+              Aucune machine trouvée pour ces critères.
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <app-pagination 
+      [totalItems]="filteredMachines.length" 
+      [pageSize]="pageSize" 
+      [currentPage]="currentPage" 
+      (pageChange)="currentPage = $event" 
+      (pageSizeChange)="pageSize = $event">
+    </app-pagination>
+  </div>
+
+  <!-- Modal Creation -->
+  <div *ngIf="openModal" class="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4">
+    <div class="bg-white rounded-xl shadow-xl w-full max-w-lg overflow-hidden flex flex-col">
+      <div class="p-6 border-b">
+        <h2 class="text-lg font-bold">Ajouter un Équipement au Parc</h2>
+        <p class="text-xs text-gray-500">Enregistrer un nouvel engin agricole ou une machine d'usine.</p>
+      </div>
+
+      <form (ngSubmit)="handleSubmit()" class="p-6 space-y-4">
+        <div class="grid grid-cols-2 gap-4">
+          <div class="space-y-1">
+            <label class="text-xs font-medium text-gray-700">Code Interne</label>
+            <input type="text" [(ngModel)]="formData.codeInterne" name="codeInterne" placeholder="ex: TR-01" required class="w-full h-10 px-3 text-sm rounded-lg border border-gray-200 focus:ring-1 focus:ring-green-600">
+          </div>
+          <div class="space-y-1">
+            <label class="text-xs font-medium text-gray-700">N° Inventaire</label>
+            <input type="text" [(ngModel)]="formData.numeroInventaire" name="numeroInventaire" required class="w-full h-10 px-3 text-sm rounded-lg border border-gray-200 focus:ring-1 focus:ring-green-600">
+          </div>
+        </div>
+
+        <div class="space-y-1">
+          <label class="text-xs font-medium text-gray-700">Désignation</label>
+          <input type="text" [(ngModel)]="formData.designation" name="designation" placeholder="ex: Tracteur John Deere 6120M" required class="w-full h-10 px-3 text-sm rounded-lg border border-gray-200 focus:ring-1 focus:ring-green-600">
+        </div>
+
+        <div class="grid grid-cols-2 gap-4">
+          <div class="space-y-1">
+            <label class="text-xs font-medium text-gray-700">Catégorie</label>
+            <select [(ngModel)]="formData.categorie" name="categorie" required class="w-full h-10 px-3 text-sm rounded-lg border border-gray-200 focus:ring-1 focus:ring-green-600">
+              <option value="Tracteur">Tracteur</option>
+              <option value="Moissonneuse">Moissonneuse</option>
+              <option value="Presse">Presse à paille</option>
+              <option value="Décortiqueuse">Décortiqueuse</option>
+              <option value="Autre">Autre</option>
+            </select>
+          </div>
+          <div class="space-y-1">
+            <label class="text-xs font-medium text-gray-700">Statut Initial</label>
+            <select [(ngModel)]="formData.statut" name="statut" required class="w-full h-10 px-3 text-sm rounded-lg border border-gray-200 focus:ring-1 focus:ring-green-600">
+              <option value="Disponible">Disponible</option>
+              <option value="En prestation">En prestation</option>
+              <option value="En production">En production</option>
+              <option value="En maintenance">En maintenance</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-4">
+          <div class="space-y-1">
+            <label class="text-xs font-medium text-gray-700">Marque</label>
+            <input type="text" [(ngModel)]="formData.marque" name="marque" placeholder="ex: John Deere" class="w-full h-10 px-3 text-sm rounded-lg border border-gray-200 focus:ring-1 focus:ring-green-600">
+          </div>
+          <div class="space-y-1">
+            <label class="text-xs font-medium text-gray-700">Modèle</label>
+            <input type="text" [(ngModel)]="formData.modele" name="modele" placeholder="ex: 6120M" class="w-full h-10 px-3 text-sm rounded-lg border border-gray-200 focus:ring-1 focus:ring-green-600">
+          </div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-4">
+          <div class="space-y-1">
+            <label class="text-xs font-medium text-gray-700">Compteur Horaire Initial (h)</label>
+            <input type="number" min="0" step="0.1" [(ngModel)]="formData.compteurHoraire" name="compteurHoraire" required class="w-full h-10 px-3 text-sm rounded-lg border border-gray-200 focus:ring-1 focus:ring-green-600">
+          </div>
+          <div class="space-y-1">
+            <label class="text-xs font-medium text-gray-700">Seuil Prochaine Maint. (h)</label>
+            <input type="number" min="0" step="1" [(ngModel)]="formData.prochaineMaintenance" name="prochaineMaintenance" required class="w-full h-10 px-3 text-sm rounded-lg border border-gray-200 focus:ring-1 focus:ring-green-600">
+          </div>
+        </div>
+
+        <div class="flex justify-end gap-2 pt-4 border-t">
+          <button type="button" (click)="openModal = false" class="px-4 py-2 rounded-lg text-sm border border-gray-200 hover:bg-gray-50">Annuler</button>
+          <button type="submit" [disabled]="isSubmitting" class="px-4 py-2 rounded-lg text-sm bg-green-600 text-white font-medium hover:bg-green-700 disabled:opacity-50">
+            {{ isSubmitting ? 'Enregistrement...' : 'Enregistrer' }}
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>

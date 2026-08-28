@@ -1,0 +1,224 @@
+<div class="space-y-6 max-w-7xl mx-auto p-6 relative">
+  <!-- Header -->
+  <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+    <div>
+      <h1 class="text-3xl font-bold tracking-tight">Répertoire Clients & Producteurs</h1>
+      <p class="text-gray-500">Base de données des apporteurs de paddy (producteurs) et des clients acheteurs.</p>
+    </div>
+    <button (click)="openCreateModal()" class="inline-flex items-center justify-center rounded-lg text-sm font-medium bg-green-600 text-white hover:bg-green-700 h-10 px-4 py-2 gap-2 shadow-sm transition-colors">
+      <lucide-icon name="plus" class="size-4"></lucide-icon>
+      Nouveau Client
+    </button>
+  </div>
+
+  <!-- KPI Cards -->
+  <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+    <div class="rounded-xl border bg-white text-gray-900 shadow-sm p-5">
+      <div class="flex items-center justify-between pb-2">
+        <span class="text-sm font-medium text-gray-500">Total Comptes</span>
+        <span class="p-2 rounded-lg bg-gray-100 text-gray-700">
+          <lucide-icon name="users" class="size-4"></lucide-icon>
+        </span>
+      </div>
+      <div class="text-2xl font-bold">{{ totalClients }}</div>
+      <p class="text-xs text-gray-500 mt-1">Partenaires enregistrés</p>
+    </div>
+
+    <div class="rounded-xl border bg-white text-gray-900 shadow-sm p-5 relative overflow-hidden">
+      <div class="absolute inset-x-0 bottom-0 h-1 bg-green-500"></div>
+      <div class="flex items-center justify-between pb-2">
+        <span class="text-sm font-medium text-gray-500">Producteurs Paddy</span>
+        <span class="p-2 rounded-lg bg-green-50 text-green-600">
+          <lucide-icon name="users" class="size-4"></lucide-icon>
+        </span>
+      </div>
+      <div class="text-2xl font-bold text-green-600">{{ producteurs }}</div>
+      <p class="text-xs text-gray-500 mt-1">Apporteurs & bénéficiaires usine</p>
+    </div>
+
+    <div class="rounded-xl border bg-white text-gray-900 shadow-sm p-5 relative overflow-hidden">
+      <div class="absolute inset-x-0 bottom-0 h-1 bg-blue-500"></div>
+      <div class="flex items-center justify-between pb-2">
+        <span class="text-sm font-medium text-gray-500">Acheteurs de Riz</span>
+        <span class="p-2 rounded-lg bg-blue-50 text-blue-600">
+          <lucide-icon name="users" class="size-4"></lucide-icon>
+        </span>
+      </div>
+      <div class="text-2xl font-bold text-blue-600">{{ acheteurs }}</div>
+      <p class="text-xs text-gray-500 mt-1">Grossistes & détaillants</p>
+    </div>
+
+    <div class="rounded-xl border bg-white text-gray-900 shadow-sm p-5 relative overflow-hidden">
+      <div class="absolute inset-x-0 bottom-0 h-1 bg-amber-500"></div>
+      <div class="flex items-center justify-between pb-2">
+        <span class="text-sm font-medium text-gray-500">Encours Total (Créances)</span>
+        <span class="p-2 rounded-lg bg-amber-50 text-amber-600">
+          <lucide-icon name="phone" class="size-4"></lucide-icon>
+        </span>
+      </div>
+      <div class="text-2xl font-bold text-amber-600">{{ formatMoney(totalEncours) }}</div>
+      <p class="text-xs text-gray-500 mt-1">Règlements en attente</p>
+    </div>
+  </div>
+
+  <!-- Filters & Search -->
+  <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 bg-white p-4 rounded-xl border">
+    <div class="flex items-center gap-2 overflow-x-auto">
+      <button 
+        *ngFor="let t of types" 
+        (click)="selectedType = t" 
+        [class]="selectedType === t ? 'bg-green-600 text-white font-medium' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'"
+        class="px-3 py-1.5 rounded-lg text-xs transition-colors shrink-0">
+        {{ t }}
+      </button>
+    </div>
+    <div class="relative w-full sm:w-64">
+      <input 
+        type="text" 
+        [(ngModel)]="searchTerm" 
+        placeholder="Rechercher par nom, téléphone, code..." 
+        class="w-full h-9 pl-9 pr-3 text-xs rounded-lg border border-gray-200 focus:outline-none focus:ring-1 focus:ring-green-600">
+      <lucide-icon name="search" class="size-4 text-gray-400 absolute left-3 top-2.5"></lucide-icon>
+    </div>
+  </div>
+
+  <!-- Table -->
+  <div class="rounded-xl border bg-white text-gray-900 shadow-sm overflow-hidden">
+    <div *ngIf="isLoading" class="py-12 text-center text-gray-500">Chargement des clients...</div>
+
+    <div *ngIf="!isLoading" class="overflow-x-auto">
+      <table class="w-full caption-bottom text-sm">
+        <thead class="bg-gray-50/75 border-b">
+          <tr class="text-left text-xs font-semibold uppercase tracking-wider text-gray-500">
+            <th class="py-3 px-4">Code</th>
+            <th class="py-3 px-4">Nom & Prénom / Raison Sociale</th>
+            <th class="py-3 px-4">Type</th>
+            <th class="py-3 px-4">Téléphone</th>
+            <th class="py-3 px-4">Localité / Adresse</th>
+            <th class="py-3 px-4 text-right">Parcelles & Superficie</th>
+            <th class="py-3 px-4 text-right">Encours Financier</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-gray-100">
+          <tr *ngFor="let c of paginatedClients" class="hover:bg-gray-50/50 transition-colors">
+            <td class="py-3.5 px-4 font-mono text-xs font-semibold text-gray-700">
+              <span class="px-2 py-1 bg-gray-100 rounded">{{ c.code }}</span>
+            </td>
+            <td class="py-3.5 px-4">
+              <div class="font-semibold text-gray-900">{{ c.prenom || '' }} {{ c.nom }}</div>
+              <div *ngIf="c.raisonSociale" class="text-xs text-gray-500 font-medium">{{ c.raisonSociale }}</div>
+            </td>
+            <td class="py-3.5 px-4">
+              <span *ngIf="c.type === 'Producteur'" class="inline-flex items-center px-2 py-0.5 rounded text-xs font-semibold bg-emerald-100 text-emerald-800">
+                Producteur
+              </span>
+              <span *ngIf="c.type === 'Acheteur'" class="inline-flex items-center px-2 py-0.5 rounded text-xs font-semibold bg-blue-100 text-blue-800">
+                Acheteur
+              </span>
+              <span *ngIf="c.type === 'Mixte'" class="inline-flex items-center px-2 py-0.5 rounded text-xs font-semibold bg-purple-100 text-purple-800">
+                Mixte
+              </span>
+            </td>
+            <td class="py-3.5 px-4 text-xs font-mono text-gray-700">{{ c.telephone || '-' }}</td>
+            <td class="py-3.5 px-4 text-xs text-gray-600">{{ c.adresse || '-' }}</td>
+            <td class="py-3.5 px-4 text-right text-xs">
+              <span *ngIf="c.nombreParcelles">{{ c.nombreParcelles }} parcelle(s) • {{ c.superficieExploitee || 0 }} ha</span>
+              <span *ngIf="!c.nombreParcelles" class="text-gray-400">-</span>
+            </td>
+            <td class="py-3.5 px-4 text-right font-mono text-xs font-semibold" [class.text-amber-600]="c.encours > 0" [class.text-gray-600]="!c.encours || c.encours === 0">
+              {{ formatMoney(c.encours || 0) }}
+            </td>
+          </tr>
+          <tr *ngIf="filteredClients.length === 0">
+            <td colspan="7" class="py-8 text-center text-sm text-gray-500">
+              Aucun client trouvé dans le répertoire.
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <app-pagination 
+      [totalItems]="filteredClients.length" 
+      [pageSize]="pageSize" 
+      [currentPage]="currentPage" 
+      (pageChange)="currentPage = $event" 
+      (pageSizeChange)="pageSize = $event">
+    </app-pagination>
+  </div>
+
+  <!-- Modal Creation -->
+  <div *ngIf="openModal" class="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4">
+    <div class="bg-white rounded-xl shadow-xl w-full max-w-lg overflow-hidden flex flex-col max-h-[90vh]">
+      <div class="p-6 border-b">
+        <h2 class="text-lg font-bold">Nouveau Compte Client / Producteur</h2>
+        <p class="text-xs text-gray-500">Fiche signalétique individuelle ou collective.</p>
+      </div>
+
+      <form (ngSubmit)="handleSubmit()" class="p-6 space-y-4 overflow-y-auto">
+        <div class="grid grid-cols-2 gap-4">
+          <div class="space-y-1">
+            <label class="text-xs font-medium text-gray-700">Code Client</label>
+            <input type="text" [(ngModel)]="formData.code" name="code" required class="w-full h-10 px-3 text-sm rounded-lg border border-gray-200 focus:ring-1 focus:ring-green-600 font-mono">
+          </div>
+          <div class="space-y-1">
+            <label class="text-xs font-medium text-gray-700">Type de Compte</label>
+            <select [(ngModel)]="formData.type" name="type" required class="w-full h-10 px-3 text-sm rounded-lg border border-gray-200 focus:ring-1 focus:ring-green-600">
+              <option value="Producteur">Producteur (Apporteur Paddy)</option>
+              <option value="Acheteur">Acheteur (Client Riz Blanc / Son)</option>
+              <option value="Mixte">Mixte (Producteur & Acheteur)</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-4">
+          <div class="space-y-1">
+            <label class="text-xs font-medium text-gray-700">Nom</label>
+            <input type="text" [(ngModel)]="formData.nom" name="nom" required class="w-full h-10 px-3 text-sm rounded-lg border border-gray-200 focus:ring-1 focus:ring-green-600">
+          </div>
+          <div class="space-y-1">
+            <label class="text-xs font-medium text-gray-700">Prénom</label>
+            <input type="text" [(ngModel)]="formData.prenom" name="prenom" class="w-full h-10 px-3 text-sm rounded-lg border border-gray-200 focus:ring-1 focus:ring-green-600">
+          </div>
+        </div>
+
+        <div class="space-y-1">
+          <label class="text-xs font-medium text-gray-700">Raison Sociale / GIE (Optionnel)</label>
+          <input type="text" [(ngModel)]="formData.raisonSociale" name="raisonSociale" placeholder="ex: GIE Bokk Jom" class="w-full h-10 px-3 text-sm rounded-lg border border-gray-200 focus:ring-1 focus:ring-green-600">
+        </div>
+
+        <div class="grid grid-cols-2 gap-4">
+          <div class="space-y-1">
+            <label class="text-xs font-medium text-gray-700">Téléphone</label>
+            <input type="text" [(ngModel)]="formData.telephone" name="telephone" placeholder="+221 77 123 45 67" required class="w-full h-10 px-3 text-sm rounded-lg border border-gray-200 focus:ring-1 focus:ring-green-600">
+          </div>
+          <div class="space-y-1">
+            <label class="text-xs font-medium text-gray-700">Adresse / Localité</label>
+            <input type="text" [(ngModel)]="formData.adresse" name="adresse" placeholder="ex: Dagana Nord" required class="w-full h-10 px-3 text-sm rounded-lg border border-gray-200 focus:ring-1 focus:ring-green-600">
+          </div>
+        </div>
+
+        <div *ngIf="formData.type === 'Producteur' || formData.type === 'Mixte'" class="p-3 bg-gray-50 rounded-lg space-y-3 border">
+          <div class="text-xs font-semibold text-gray-700">Informations Agricoles (Producteur)</div>
+          <div class="grid grid-cols-2 gap-4">
+            <div class="space-y-1">
+              <label class="text-xs font-medium text-gray-600">Nombre de Parcelles</label>
+              <input type="number" min="1" [(ngModel)]="formData.nombreParcelles" name="nombreParcelles" class="w-full h-9 px-3 text-xs rounded-lg border border-gray-200 bg-white">
+            </div>
+            <div class="space-y-1">
+              <label class="text-xs font-medium text-gray-600">Superficie Totale (ha)</label>
+              <input type="number" min="0.5" step="0.5" [(ngModel)]="formData.superficieExploitee" name="superficieExploitee" class="w-full h-9 px-3 text-xs rounded-lg border border-gray-200 bg-white">
+            </div>
+          </div>
+        </div>
+
+        <div class="flex justify-end gap-2 pt-4 border-t">
+          <button type="button" (click)="openModal = false" class="px-4 py-2 rounded-lg text-sm border border-gray-200 hover:bg-gray-50">Annuler</button>
+          <button type="submit" [disabled]="isSubmitting" class="px-4 py-2 rounded-lg text-sm bg-green-600 text-white font-medium hover:bg-green-700 disabled:opacity-50">
+            {{ isSubmitting ? 'Création...' : 'Créer la Fiche Client' }}
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>

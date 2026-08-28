@@ -1,0 +1,122 @@
+<div class="space-y-6 max-w-7xl mx-auto p-6 relative">
+  <!-- Header -->
+  <div class="mb-8">
+    <h1 class="text-3xl font-bold tracking-tight">Tableau de Bord Ressources Humaines</h1>
+    <p class="text-gray-500">Pilotage de la masse salariale, répartition des activités et suivi du temps de travail effectif.</p>
+  </div>
+
+  <div *ngIf="isLoading" class="py-12 text-center text-gray-500">Chargement des indicateurs RH...</div>
+
+  <div *ngIf="!isLoading" class="space-y-6">
+    <!-- KPI Cards -->
+    <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
+      <div class="rounded-xl border bg-white text-gray-900 shadow-sm p-6">
+        <div class="flex flex-row items-center justify-between space-y-0 pb-2">
+          <h3 class="tracking-tight text-sm font-medium text-gray-500">Effectif Actif</h3>
+          <lucide-icon name="users" class="size-4 text-gray-400"></lucide-icon>
+        </div>
+        <div class="text-2xl font-bold">{{ totalEmployes }} salariés</div>
+        <p class="text-xs text-gray-500 mt-1">Permanents + journaliers</p>
+      </div>
+
+      <div class="rounded-xl border bg-white text-gray-900 shadow-sm p-6 relative overflow-hidden">
+        <div class="absolute inset-x-0 bottom-0 h-1 bg-green-500"></div>
+        <div class="flex flex-row items-center justify-between space-y-0 pb-2">
+          <h3 class="tracking-tight text-sm font-medium text-gray-500">Heures Pointées</h3>
+          <lucide-icon name="clock" class="size-4 text-green-600"></lucide-icon>
+        </div>
+        <div class="text-2xl font-bold text-green-600">{{ totalHeures }} h</div>
+        <p class="text-xs text-gray-500 mt-1">Volume horaire cumulé</p>
+      </div>
+
+      <div class="rounded-xl border bg-white text-gray-900 shadow-sm p-6 relative overflow-hidden">
+        <div class="absolute inset-x-0 bottom-0 h-1 bg-blue-500"></div>
+        <div class="flex flex-row items-center justify-between space-y-0 pb-2">
+          <h3 class="tracking-tight text-sm font-medium text-gray-500">Coût Main d'Œuvre</h3>
+          <lucide-icon name="wallet" class="size-4 text-blue-600"></lucide-icon>
+        </div>
+        <div class="text-2xl font-bold text-blue-600">{{ formatMoney(totalCoutPointages) }}</div>
+        <p class="text-xs text-gray-500 mt-1">Total déboursé sur pointages</p>
+      </div>
+
+      <div class="rounded-xl border bg-white text-gray-900 shadow-sm p-6 relative overflow-hidden">
+        <div class="absolute inset-x-0 bottom-0 h-1 bg-purple-500"></div>
+        <div class="flex flex-row items-center justify-between space-y-0 pb-2">
+          <h3 class="tracking-tight text-sm font-medium text-gray-500">Masse Salariale Base</h3>
+          <lucide-icon name="hard-hat" class="size-4 text-purple-600"></lucide-icon>
+        </div>
+        <div class="text-2xl font-bold text-purple-600">{{ formatMoney(masseSalarialeBase) }}</div>
+        <p class="text-xs text-gray-500 mt-1">Prévision budgétaire mensuelle</p>
+      </div>
+    </div>
+
+    <!-- Répartition & Équipes -->
+    <div class="grid grid-cols-1 gap-6 lg:grid-cols-2">
+      <!-- Répartition des heures -->
+      <div class="rounded-xl border bg-white text-gray-900 shadow-sm p-6">
+        <h2 class="mb-4 text-base font-semibold">Répartition des Postes & Activités</h2>
+        <div class="space-y-4">
+          <div>
+            <div class="flex justify-between mb-1 text-sm font-medium">
+              <span>Transformation Rizerie (Usine)</span>
+              <span class="text-gray-500">{{ getRepartition('Transformation') || 45 }}%</span>
+            </div>
+            <div class="w-full bg-gray-100 rounded-full h-2">
+              <div class="bg-green-600 h-2 rounded-full" [style.width.%]="getRepartition('Transformation') || 45"></div>
+            </div>
+          </div>
+
+          <div>
+            <div class="flex justify-between mb-1 text-sm font-medium">
+              <span>Chauffeurs & Travaux Agricoles (Labour/Moisson)</span>
+              <span class="text-gray-500">{{ getRepartition('Moissonnage') + getRepartition('Labour') || 35 }}%</span>
+            </div>
+            <div class="w-full bg-gray-100 rounded-full h-2">
+              <div class="bg-blue-600 h-2 rounded-full" [style.width.%]="getRepartition('Moissonnage') + getRepartition('Labour') || 35"></div>
+            </div>
+          </div>
+
+          <div>
+            <div class="flex justify-between mb-1 text-sm font-medium">
+              <span>Maintenance Mécanique & Entretien</span>
+              <span class="text-gray-500">{{ getRepartition('Maintenance') || 12 }}%</span>
+            </div>
+            <div class="w-full bg-gray-100 rounded-full h-2">
+              <div class="bg-amber-500 h-2 rounded-full" [style.width.%]="getRepartition('Maintenance') || 12"></div>
+            </div>
+          </div>
+
+          <div>
+            <div class="flex justify-between mb-1 text-sm font-medium">
+              <span>Manutention & Logistique</span>
+              <span class="text-gray-500">{{ getRepartition('Manutention') || 8 }}%</span>
+            </div>
+            <div class="w-full bg-gray-100 rounded-full h-2">
+              <div class="bg-purple-600 h-2 rounded-full" [style.width.%]="getRepartition('Manutention') || 8"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Derniers Pointages -->
+      <div class="rounded-xl border bg-white text-gray-900 shadow-sm p-6">
+        <h2 class="mb-4 text-base font-semibold">Derniers Pointages Saisis</h2>
+        <div class="space-y-3">
+          <div *ngFor="let p of pointages.slice(0, 5)" class="flex items-center justify-between p-3 bg-gray-50 rounded-lg text-sm">
+            <div>
+              <div class="font-semibold text-gray-900">{{ p.employeNom }}</div>
+              <div class="text-xs text-gray-500">{{ p.activite }} • {{ p.date }}</div>
+            </div>
+            <div class="text-right">
+              <div class="font-mono font-bold text-gray-900">{{ p.heuresTravaillees }} h</div>
+              <div class="text-xs font-mono text-green-700 font-semibold">{{ formatMoney(p.coutMainOeuvre || 0) }}</div>
+            </div>
+          </div>
+          <div *ngIf="pointages.length === 0" class="py-6 text-center text-sm text-gray-500">
+            Aucun pointage récent à afficher.
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
