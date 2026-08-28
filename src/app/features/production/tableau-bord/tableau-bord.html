@@ -4,6 +4,54 @@
     <p class="text-gray-500">Indicateurs de performance (KPI) et rendements réels des 6 produits issus de la transformation.</p>
   </div>
 
+  <!-- BARRE DE FILTRES PAR PÉRIODE & RECHERCHE -->
+  <div class="p-4 bg-white rounded-xl border border-gray-200 shadow-xs flex flex-wrap items-center justify-between gap-4">
+    <div class="flex flex-wrap items-center gap-3">
+      <!-- Période Date Début / Fin -->
+      <div class="flex items-center gap-2 bg-gray-50 px-3 py-1.5 rounded-lg border border-gray-200 text-xs">
+        <lucide-icon name="calendar-days" class="size-4 text-green-700"></lucide-icon>
+        <span class="font-bold text-gray-700">Période du :</span>
+        <input 
+          type="date" 
+          [(ngModel)]="dateDebut" 
+          (ngModelChange)="currentPage = 1"
+          class="h-7 px-2 bg-white rounded border border-gray-300 font-mono text-xs focus:ring-1 focus:ring-green-600">
+        <span class="font-bold text-gray-700">au :</span>
+        <input 
+          type="date" 
+          [(ngModel)]="dateFin" 
+          (ngModelChange)="currentPage = 1"
+          class="h-7 px-2 bg-white rounded border border-gray-300 font-mono text-xs focus:ring-1 focus:ring-green-600">
+      </div>
+
+      <!-- Recherche Client ou N° OF -->
+      <div class="relative min-w-[220px]">
+        <input 
+          type="text" 
+          [(ngModel)]="searchTerm" 
+          (ngModelChange)="currentPage = 1"
+          placeholder="Rechercher OF, client..." 
+          class="w-full h-8.5 pl-8 pr-3 text-xs rounded-lg border border-gray-200 focus:outline-none focus:ring-1 focus:ring-green-600">
+        <lucide-icon name="search" class="size-3.5 text-gray-400 absolute left-2.5 top-2.5"></lucide-icon>
+      </div>
+
+      <!-- Bouton Réinitialiser -->
+      <button 
+        *ngIf="dateDebut || dateFin || searchTerm"
+        (click)="resetFilters()" 
+        class="inline-flex items-center gap-1 text-xs text-rose-600 hover:text-rose-800 font-semibold px-2 py-1 bg-rose-50 rounded border border-rose-200 cursor-pointer">
+        <lucide-icon name="rotate-ccw" class="size-3"></lucide-icon>
+        Effacer
+      </button>
+    </div>
+
+    <!-- Badge compteur -->
+    <div class="text-xs text-gray-500 font-medium">
+      <span class="font-bold text-green-700 font-mono">{{ filteredOfClotures.length }}</span> OF clôturé(s) dans la période
+    </div>
+  </div>
+
+  <!-- KPI CARDS -->
   <div class="grid gap-4 md:grid-cols-3">
     <div class="rounded-xl border bg-white text-gray-900 shadow-sm p-6">
       <div class="flex flex-row items-center justify-between pb-2">
@@ -11,14 +59,14 @@
         <lucide-icon name="activity" class="size-4 text-gray-500"></lucide-icon>
       </div>
       <div>
-        <div class="text-2xl font-bold text-green-600">{{ ofClotures.length }}</div>
-        <p class="text-xs text-gray-500 mt-1">OF terminés avec rendements</p>
+        <div class="text-2xl font-bold text-green-600">{{ filteredOfClotures.length }}</div>
+        <p class="text-xs text-gray-500 mt-1">OF terminés dans la sélection</p>
       </div>
     </div>
     
     <div class="rounded-xl border bg-white text-gray-900 shadow-sm p-6">
       <div class="flex flex-row items-center justify-between pb-2">
-        <h3 class="text-sm font-medium">Total Paddy Consommé</h3>
+        <h3 class="text-sm font-medium">Total Paddy Transformé</h3>
         <lucide-icon name="bar-chart-3" class="size-4 text-gray-500"></lucide-icon>
       </div>
       <div>
@@ -39,12 +87,13 @@
     </div>
   </div>
 
+  <!-- TABLEAU RÉCAPITULATIF DES RENDEMENTS -->
   <div class="rounded-xl border bg-white text-gray-900 shadow-sm overflow-hidden">
     <div class="flex flex-col space-y-1.5 p-6 border-b">
       <h3 class="font-semibold leading-none tracking-tight text-lg">Tableau Récapitulatif des 6 Produits par Ordre de Fabrication</h3>
       <p class="text-sm text-gray-500">Affichage détaillé : Riz Entier, Intermédiaire, Brisé, Fine Brisure, Son de riz et Balle de riz.</p>
     </div>
-    <div class="p-6">
+    <div class="p-6 space-y-4">
       <div *ngIf="isLoading" class="py-8 text-center text-gray-500">Chargement des données...</div>
       
       <div *ngIf="!isLoading" class="relative w-full overflow-auto">
@@ -66,7 +115,7 @@
             </tr>
           </thead>
           <tbody class="divide-y divide-gray-100 text-xs">
-            <tr *ngFor="let of of ofClotures" class="hover:bg-gray-50/50 transition-colors">
+            <tr *ngFor="let of of paginatedOfClotures" class="hover:bg-gray-50/50 transition-colors">
               <ng-container *ngIf="of.resultats as r">
                 <td class="py-3 px-3 font-mono font-semibold text-gray-700">{{ of.numero }}</td>
                 <td class="py-3 px-3 text-gray-500">{{ of.date }}</td>
@@ -120,14 +169,23 @@
                 </td>
               </ng-container>
             </tr>
-            <tr *ngIf="ofClotures.length === 0">
+            <tr *ngIf="filteredOfClotures.length === 0">
               <td colspan="12" class="p-4 align-middle py-8 text-center text-gray-500">
-                Aucun ordre de fabrication clôturé avec des résultats.
+                Aucun ordre de fabrication clôturé trouvé pour cette sélection.
               </td>
             </tr>
           </tbody>
         </table>
       </div>
+
+      <!-- PAGINATION -->
+      <app-pagination 
+        [totalItems]="filteredOfClotures.length" 
+        [pageSize]="pageSize" 
+        [currentPage]="currentPage" 
+        (pageChange)="currentPage = $event" 
+        (pageSizeChange)="pageSize = $event">
+      </app-pagination>
     </div>
   </div>
 </div>

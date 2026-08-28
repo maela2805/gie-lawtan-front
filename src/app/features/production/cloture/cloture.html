@@ -189,9 +189,8 @@
             <div class="p-2.5 rounded-lg border border-emerald-200 bg-emerald-50/40 space-y-1.5">
               <div class="font-bold text-emerald-950">Riz Entier</div>
               <div class="space-y-1">
-                <input type="number" [(ngModel)]="clotureForm.rizEntierSacs" (ngModelChange)="onSacsChange('entier', 50)" name="rizEntierSacs" placeholder="Nb sacs" class="w-full h-7 px-2 rounded border border-gray-200 font-mono">
-                <div class="text-[11px] text-gray-500 font-mono">Poids : {{ clotureForm.rizEntierKg }} kg</div>
-                <input type="number" [(ngModel)]="clotureForm.prixUnitaireEntier" name="prixUnitaireEntier" placeholder="Prix CFA/kg" class="w-full h-7 px-2 rounded border border-gray-200 font-mono">
+                <input type="number" [(ngModel)]="clotureForm.rizEntierSacs" (ngModelChange)="onSacsChange('entier', 50)" name="rizEntierSacs" placeholder="Nb sacs (50kg)" class="w-full h-7 px-2 rounded border border-gray-200 font-mono font-semibold">
+                <div class="text-[11px] text-emerald-800 font-mono font-bold">Poids : {{ clotureForm.rizEntierKg }} kg</div>
               </div>
             </div>
 
@@ -199,9 +198,8 @@
             <div class="p-2.5 rounded-lg border border-blue-200 bg-blue-50/40 space-y-1.5">
               <div class="font-bold text-blue-950">Riz Intermédiaire</div>
               <div class="space-y-1">
-                <input type="number" [(ngModel)]="clotureForm.rizIntermediaireSacs" (ngModelChange)="onSacsChange('inter', 50)" name="rizIntermediaireSacs" placeholder="Nb sacs" class="w-full h-7 px-2 rounded border border-gray-200 font-mono">
-                <div class="text-[11px] text-gray-500 font-mono">Poids : {{ clotureForm.rizIntermediaireKg }} kg</div>
-                <input type="number" [(ngModel)]="clotureForm.prixUnitaireIntermediaire" name="prixUnitaireIntermediaire" placeholder="Prix CFA/kg" class="w-full h-7 px-2 rounded border border-gray-200 font-mono">
+                <input type="number" [(ngModel)]="clotureForm.rizIntermediaireSacs" (ngModelChange)="onSacsChange('inter', 50)" name="rizIntermediaireSacs" placeholder="Nb sacs (50kg)" class="w-full h-7 px-2 rounded border border-gray-200 font-mono font-semibold">
+                <div class="text-[11px] text-blue-800 font-mono font-bold">Poids : {{ clotureForm.rizIntermediaireKg }} kg</div>
               </div>
             </div>
 
@@ -209,9 +207,8 @@
             <div class="p-2.5 rounded-lg border border-indigo-200 bg-indigo-50/40 space-y-1.5">
               <div class="font-bold text-indigo-950">Riz Brisé</div>
               <div class="space-y-1">
-                <input type="number" [(ngModel)]="clotureForm.rizBriseSacs" (ngModelChange)="onSacsChange('brise', 50)" name="rizBriseSacs" placeholder="Nb sacs" class="w-full h-7 px-2 rounded border border-gray-200 font-mono">
-                <div class="text-[11px] text-gray-500 font-mono">Poids : {{ clotureForm.rizBriseKg }} kg</div>
-                <input type="number" [(ngModel)]="clotureForm.prixUnitaireBrise" name="prixUnitaireBrise" placeholder="Prix CFA/kg" class="w-full h-7 px-2 rounded border border-gray-200 font-mono">
+                <input type="number" [(ngModel)]="clotureForm.rizBriseSacs" (ngModelChange)="onSacsChange('brise', 50)" name="rizBriseSacs" placeholder="Nb sacs (50kg)" class="w-full h-7 px-2 rounded border border-gray-200 font-mono font-semibold">
+                <div class="text-[11px] text-indigo-800 font-mono font-bold">Poids : {{ clotureForm.rizBriseKg }} kg</div>
               </div>
             </div>
 
@@ -219,9 +216,8 @@
             <div class="p-2.5 rounded-lg border border-purple-200 bg-purple-50/40 space-y-1.5">
               <div class="font-bold text-purple-950">Fine Brisure</div>
               <div class="space-y-1">
-                <input type="number" [(ngModel)]="clotureForm.fineBrisureSacs" (ngModelChange)="onSacsChange('fine', 50)" name="fineBrisureSacs" placeholder="Nb sacs" class="w-full h-7 px-2 rounded border border-gray-200 font-mono">
-                <div class="text-[11px] text-gray-500 font-mono">Poids : {{ clotureForm.fineBrisureKg }} kg</div>
-                <input type="number" [(ngModel)]="clotureForm.prixUnitaireFine" name="prixUnitaireFine" placeholder="Prix CFA/kg" class="w-full h-7 px-2 rounded border border-gray-200 font-mono">
+                <input type="number" [(ngModel)]="clotureForm.fineBrisureSacs" (ngModelChange)="onSacsChange('fine', 50)" name="fineBrisureSacs" placeholder="Nb sacs (50kg)" class="w-full h-7 px-2 rounded border border-gray-200 font-mono font-semibold">
+                <div class="text-[11px] text-purple-800 font-mono font-bold">Poids : {{ clotureForm.fineBrisureKg }} kg</div>
               </div>
             </div>
           </div>
@@ -239,7 +235,7 @@
           </div>
           <div class="text-right">
             <span class="text-2xl font-black text-green-700 font-mono">{{ ratioTransformation4Principaux }} %</span>
-            <div class="text-[10px] text-gray-500 font-medium">Rendement Global Usine : {{ rendementGlobal }} %</div>
+            <div class="text-[10px] text-gray-500 font-medium">4 Produits Principaux Réunis</div>
           </div>
         </div>
 
@@ -253,18 +249,14 @@
             <!-- Son de riz -->
             <div class="p-3 rounded-lg border border-amber-200 bg-amber-50/40 space-y-1.5">
               <div class="font-bold text-amber-950">Son de Riz</div>
-              <div class="grid grid-cols-3 gap-2">
+              <div class="grid grid-cols-2 gap-2">
                 <div>
                   <label class="text-[10px] text-gray-500">Sacs (40kg)</label>
-                  <input type="number" [(ngModel)]="clotureForm.sonDeRizSacs" (ngModelChange)="onSacsChange('son', 40)" name="sonDeRizSacs" class="w-full h-7 px-2 rounded border border-gray-200 font-mono">
+                  <input type="number" [(ngModel)]="clotureForm.sonDeRizSacs" (ngModelChange)="onSacsChange('son', 40)" name="sonDeRizSacs" class="w-full h-7 px-2 rounded border border-gray-200 font-mono font-semibold">
                 </div>
                 <div>
                   <label class="text-[10px] text-gray-500">Poids (kg)</label>
-                  <input type="number" [(ngModel)]="clotureForm.sonDeRizKg" name="sonDeRizKg" class="w-full h-7 px-2 rounded border border-gray-200 font-mono">
-                </div>
-                <div>
-                  <label class="text-[10px] text-gray-500">Prix unitaire</label>
-                  <input type="number" [(ngModel)]="clotureForm.prixUnitaireSon" name="prixUnitaireSon" class="w-full h-7 px-2 rounded border border-gray-200 font-mono">
+                  <input type="number" [(ngModel)]="clotureForm.sonDeRizKg" name="sonDeRizKg" class="w-full h-7 px-2 rounded border border-gray-200 font-mono font-semibold">
                 </div>
               </div>
             </div>
@@ -275,18 +267,14 @@
                 <span class="font-bold text-amber-950">Balle de Riz (Sous-produit)</span>
                 <span class="px-1.5 py-0.2 rounded bg-amber-200 text-amber-950 font-bold text-[10px]">Partage 50% / 50%</span>
               </div>
-              <div class="grid grid-cols-3 gap-2">
+              <div class="grid grid-cols-2 gap-2">
                 <div>
                   <label class="text-[10px] text-gray-500">Nb. Sacs total</label>
-                  <input type="number" [(ngModel)]="clotureForm.balleDeRizSacs" (ngModelChange)="onSacsChange('balle', 10)" name="balleDeRizSacs" class="w-full h-7 px-2 rounded border border-gray-200 font-mono">
+                  <input type="number" [(ngModel)]="clotureForm.balleDeRizSacs" (ngModelChange)="onSacsChange('balle', 10)" name="balleDeRizSacs" class="w-full h-7 px-2 rounded border border-gray-200 font-mono font-semibold">
                 </div>
                 <div>
-                  <label class="text-[10px] text-gray-500">Unités / Volume</label>
-                  <input type="number" [(ngModel)]="clotureForm.balleDeRizUnites" name="balleDeRizUnites" class="w-full h-7 px-2 rounded border border-gray-200 font-mono">
-                </div>
-                <div>
-                  <label class="text-[10px] text-gray-500">Prix unitaire</label>
-                  <input type="number" [(ngModel)]="clotureForm.prixUnitaireBalle" name="prixUnitaireBalle" class="w-full h-7 px-2 rounded border border-gray-200 font-mono">
+                  <label class="text-[10px] text-gray-500">Unités / Volume (kg)</label>
+                  <input type="number" [(ngModel)]="clotureForm.balleDeRizUnites" name="balleDeRizUnites" class="w-full h-7 px-2 rounded border border-gray-200 font-mono font-semibold">
                 </div>
               </div>
               <div class="flex justify-between text-[11px] font-bold text-amber-900 pt-1 border-t border-amber-200/60">
@@ -294,6 +282,26 @@
                 <span>Part Lawtan (50%) : <strong class="text-amber-800">{{ ballePartLawtan }} sacs</strong></span>
               </div>
             </div>
+          </div>
+        </div>
+
+        <!-- SECTION 5 : BANDEAU RENDEMENT DES SOUS-PRODUITS & RENDEMENT GLOBAL USINE -->
+        <div class="p-3.5 rounded-lg border border-amber-300 bg-amber-50/80 flex items-center justify-between">
+          <div class="space-y-0.5">
+            <div class="text-xs font-bold uppercase text-amber-950 flex items-center gap-1.5">
+              <span>📊</span> Rendement des Sous-Produits & Rendement Global Usine
+            </div>
+            <div class="text-[11px] text-amber-900 flex items-center gap-3">
+              <span>Son de riz : <strong>{{ rendementSon }}%</strong></span>
+              <span>•</span>
+              <span>Balle de riz : <strong>{{ rendementBalle }}%</strong></span>
+              <span>•</span>
+              <span>Total Sous-produits : <strong>{{ rendementSousProduits }}%</strong></span>
+            </div>
+          </div>
+          <div class="text-right">
+            <div class="text-[10px] text-gray-600 font-bold uppercase">Rendement Global Usine</div>
+            <span class="text-2xl font-black text-amber-800 font-mono">{{ rendementGlobal }} %</span>
           </div>
         </div>
 

@@ -60,15 +60,15 @@
             <thead class="bg-gray-50 border-b border-gray-100">
               <tr class="text-left font-semibold text-gray-500">
                 <th class="py-2.5 px-3">Producteur / Client</th>
-                <th class="py-2.5 px-3 text-right">Poids (kg)</th>
                 <th class="py-2.5 px-3 text-right">Équivalent Sacs (25kg)</th>
+                <th class="py-2.5 px-3 text-right">Poids (kg)</th>
               </tr>
             </thead>
             <tbody class="divide-y divide-gray-100">
               <tr *ngFor="let stock of paginatedStocksClients" class="hover:bg-gray-50/50">
                 <td class="py-2.5 px-3 font-bold text-gray-900">{{ stock.clientNom }}</td>
-                <td class="py-2.5 px-3 text-right font-mono font-bold text-green-700">{{ stock.quantite | number }} kg</td>
-                <td class="py-2.5 px-3 text-right text-gray-600 font-mono font-semibold">~{{ getSacs(stock.quantite) }} sacs</td>
+                <td class="py-2.5 px-3 text-right text-amber-900 font-mono font-bold">~{{ getSacs(stock.quantite) }} sacs</td>
+                <td class="py-2.5 px-3 text-right font-mono font-semibold text-green-700">{{ stock.quantite | number }} kg</td>
               </tr>
               <tr *ngIf="filteredStocksClients.length === 0">
                 <td colspan="3" class="py-6 text-center text-gray-400">Aucun stock client enregistré.</td>
@@ -141,13 +141,13 @@
         <p class="text-xs text-gray-500">Matière première acquise pour la production propre et commercialisation directe.</p>
       </div>
       <div class="flex items-center gap-3">
-        <div class="px-3 py-1.5 bg-emerald-50 rounded-lg border border-emerald-200 text-right">
-          <div class="text-[10px] text-emerald-800 font-semibold uppercase">Poids Total en Stock</div>
-          <div class="text-lg font-black text-emerald-700 font-mono">{{ stockLawtanKg | number }} kg</div>
-        </div>
         <div class="px-3 py-1.5 bg-amber-50 rounded-lg border border-amber-200 text-right">
           <div class="text-[10px] text-amber-800 font-semibold uppercase">Équivalent Sacs (25kg)</div>
           <div class="text-lg font-black text-amber-700 font-mono">~{{ getSacs(stockLawtanKg) }} sacs</div>
+        </div>
+        <div class="px-3 py-1.5 bg-emerald-50 rounded-lg border border-emerald-200 text-right">
+          <div class="text-[10px] text-emerald-800 font-semibold uppercase">Poids Total en Stock</div>
+          <div class="text-lg font-black text-emerald-700 font-mono">{{ stockLawtanKg | number }} kg</div>
         </div>
       </div>
     </div>

@@ -258,6 +258,25 @@ export class Cloture implements OnInit {
     return Number(((somme4 * 100) / paddy).toFixed(2));
   }
 
+  get rendementSon(): number {
+    const paddy = this.clotureForm.paddyConsomme || 0;
+    if (paddy <= 0) return 0;
+    return Number((((this.clotureForm.sonDeRizKg || 0) * 100) / paddy).toFixed(2));
+  }
+
+  get rendementBalle(): number {
+    const paddy = this.clotureForm.paddyConsomme || 0;
+    if (paddy <= 0) return 0;
+    return Number((((this.clotureForm.balleDeRizUnites || 0) * 100) / paddy).toFixed(2));
+  }
+
+  get rendementSousProduits(): number {
+    const paddy = this.clotureForm.paddyConsomme || 0;
+    if (paddy <= 0) return 0;
+    const sousProduits = (this.clotureForm.sonDeRizKg || 0) + (this.clotureForm.balleDeRizUnites || 0);
+    return Number(((sousProduits * 100) / paddy).toFixed(2));
+  }
+
   get rendementGlobal(): number {
     const paddy = this.clotureForm.paddyConsomme || 0;
     if (paddy <= 0) return 0;
