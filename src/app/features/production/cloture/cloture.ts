@@ -77,12 +77,12 @@ export class Cloture implements OnInit {
     fineBrisureKg: 250,
     prixUnitaireFine: 260,
 
-    // 2 Sous-produits
-    sonDeRizSacs: 60,
+    // 2 Sous-produits (Sacs de 25kg)
+    sonDeRizSacs: 96,
     sonDeRizKg: 2400,
     prixUnitaireSon: 210,
 
-    balleDeRizSacs: 160,
+    balleDeRizSacs: 64,
     balleDeRizUnites: 1600,
     prixUnitaireBalle: 25,
 
@@ -136,6 +136,8 @@ export class Cloture implements OnInit {
     const interKg = Math.round(paddyApprox * 0.10);
     const briseKg = Math.round(paddyApprox * 0.05);
     const fineKg = Math.round(paddyApprox * 0.03);
+    const sonKg = Math.round(paddyApprox * 0.15);
+    const balleKg = Math.round(paddyApprox * 0.10);
 
     this.clotureForm = {
       nombreSacsReels: sacsPrev,
@@ -159,12 +161,12 @@ export class Cloture implements OnInit {
       fineBrisureKg: fineKg,
       prixUnitaireFine: 260,
 
-      sonDeRizSacs: Math.round(sacsPrev * 0.30),
-      sonDeRizKg: Math.round(paddyApprox * 0.15),
+      sonDeRizSacs: Math.round(sonKg / 25),
+      sonDeRizKg: sonKg,
       prixUnitaireSon: 210,
 
-      balleDeRizSacs: Math.round(sacsPrev * 0.8),
-      balleDeRizUnites: Math.round(paddyApprox * 0.10),
+      balleDeRizSacs: Math.round(balleKg / 25),
+      balleDeRizUnites: balleKg,
       prixUnitaireBalle: 25,
 
       observationsResultat: ''
@@ -229,13 +231,18 @@ export class Cloture implements OnInit {
     this.cdr.markForCheck();
   }
 
-  onSacsChange(product: string, poidsParSac: number) {
+  onSacsChange(product: string, poidsParSac: number = 25) {
     if (product === 'entier') this.clotureForm.rizEntierKg = (this.clotureForm.rizEntierSacs || 0) * poidsParSac;
     if (product === 'inter') this.clotureForm.rizIntermediaireKg = (this.clotureForm.rizIntermediaireSacs || 0) * poidsParSac;
     if (product === 'brise') this.clotureForm.rizBriseKg = (this.clotureForm.rizBriseSacs || 0) * poidsParSac;
     if (product === 'fine') this.clotureForm.fineBrisureKg = (this.clotureForm.fineBrisureSacs || 0) * poidsParSac;
     if (product === 'son') this.clotureForm.sonDeRizKg = (this.clotureForm.sonDeRizSacs || 0) * poidsParSac;
     if (product === 'balle') this.clotureForm.balleDeRizUnites = (this.clotureForm.balleDeRizSacs || 0) * poidsParSac;
+  }
+
+  onKgChange(product: string, poidsParSac: number = 25) {
+    if (product === 'son') this.clotureForm.sonDeRizSacs = Number(((this.clotureForm.sonDeRizKg || 0) / poidsParSac).toFixed(1));
+    if (product === 'balle') this.clotureForm.balleDeRizSacs = Number(((this.clotureForm.balleDeRizUnites || 0) / poidsParSac).toFixed(1));
   }
 
   get totalProduitsObtenusKg(): number {

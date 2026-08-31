@@ -65,7 +65,7 @@ export class ProduitsFinis implements OnInit {
     stockTheoriqueSacs: 0,
     stockReelSacs: 0,
     stockReelKg: 0,
-    poidsParSac: 50,
+    poidsParSac: 25,
     motif: 'Inventaire physique périodique'
   };
 
@@ -155,13 +155,13 @@ export class ProduitsFinis implements OnInit {
   }
 
   getSacs(article: any): number {
-    const poidsSac = article.designation?.includes('Botte') ? 1 : 50;
+    const poidsSac = article.designation?.includes('Botte') ? 1 : 25;
     return Number(((article.quantite || 0) / poidsSac).toFixed(1));
   }
 
   openAjustement(article: any): void {
     this.selectedArticleForAjustement = article;
-    const poidsSac = article.designation?.includes('Botte') ? 1 : 50;
+    const poidsSac = article.designation?.includes('Botte') ? 1 : 25;
     const sacs = Number(((article.quantite || 0) / poidsSac).toFixed(1));
 
     this.ajustementData = {
