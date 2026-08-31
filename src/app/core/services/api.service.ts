@@ -103,7 +103,7 @@ export class ApiService {
    */
   preloadEssentialData(): void {
     const endpoints = [
-      '/production/ordres',
+      '/production/ofs',
       '/stocks/articles',
       '/commercial/clients',
       '/stocks/paddy',
