@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable, of, tap, shareReplay, finalize } from 'rxjs';
+import { Observable, of, tap, shareReplay, finalize, catchError } from 'rxjs';
 import { environment } from '../../../environments/environment';
 
 interface CacheEntry<T> {
@@ -14,35 +14,37 @@ interface CacheEntry<T> {
 export class ApiService {
   private apiUrl = environment.apiUrl;
   
-  // Cache en mémoire : Clé -> { data, expiry }
-  private cache = new Map<string, CacheEntry<any>>();
+  // Cache mémoire
+  private memoryCache = new Map<string, CacheEntry<any>>();
   
   // Requêtes en cours pour éviter les appels en double simultanés (déduplication)
   private inFlightRequests = new Map<string, Observable<any>>();
   
-  // TTL par défaut : 60 secondes
-  private defaultTtlMs = 60000;
+  // TTL par défaut : 2 minutes (120 000 ms)
+  private defaultTtlMs = 120000;
 
-  constructor(private http: HttpClient) {}
+  constructor(private http: HttpClient) {
+    this.restoreCacheFromStorage();
+  }
 
   /**
-   * Requête GET optimisée avec cache mémoire et déduplication
+   * Requête GET ultra-rapide avec Cache-First + Stale While Revalidate
    */
   get<T>(endpoint: string, params?: any, forceRefresh: boolean = false, ttlMs: number = this.defaultTtlMs): Observable<T> {
     const cacheKey = this.generateCacheKey(endpoint, params);
     const now = Date.now();
 
-    // 1. Si on a des données valides en cache et qu'on ne force pas le refresh
-    if (!forceRefresh && this.cache.has(cacheKey)) {
-      const entry = this.cache.get(cacheKey)!;
+    // 1. Si on a des données valides en cache mémoire et qu'on ne force pas le refresh -> Réponse 0 ms
+    if (!forceRefresh && this.memoryCache.has(cacheKey)) {
+      const entry = this.memoryCache.get(cacheKey)!;
       if (entry.expiry > now) {
         return of(this.cloneData(entry.data));
       } else {
-        this.cache.delete(cacheKey);
+        this.memoryCache.delete(cacheKey);
       }
     }
 
-    // 2. Si une requête identique est déjà en cours d'exécution, on la partage
+    // 2. Si une requête identique est déjà en vol, la partager sans refaire d'appel HTTP
     if (this.inFlightRequests.has(cacheKey)) {
       return this.inFlightRequests.get(cacheKey)!;
     }
@@ -50,10 +52,14 @@ export class ApiService {
     // 3. Exécution de la requête réseau
     const req$ = this.http.get<T>(`${this.apiUrl}${endpoint}`, { params }).pipe(
       tap((data) => {
-        this.cache.set(cacheKey, {
-          data: this.cloneData(data),
-          expiry: Date.now() + ttlMs
-        });
+        this.setCache(cacheKey, data, ttlMs);
+      }),
+      catchError((err) => {
+        // En cas d'erreur réseau, si on a une version expirée en cache, on la renvoie pour ne pas bloquer l'UI
+        if (this.memoryCache.has(cacheKey)) {
+          return of(this.cloneData(this.memoryCache.get(cacheKey)!.data));
+        }
+        throw err;
       }),
       finalize(() => {
         this.inFlightRequests.delete(cacheKey);
@@ -93,26 +99,80 @@ export class ApiService {
   }
 
   /**
-   * Invalider le cache pour un module ou un groupe d'endpoints
+   * Préchauffage (Warmup) automatique des données clés
    */
+  preloadEssentialData(): void {
+    const endpoints = [
+      '/production/ordres',
+      '/stocks/articles',
+      '/commercial/clients',
+      '/stocks/paddy',
+      '/finance/caisse/resume'
+    ];
+    endpoints.forEach(ep => {
+      this.get(ep).subscribe({
+        next: () => {},
+        error: () => {}
+      });
+    });
+  }
+
+  private setCache(key: string, data: any, ttlMs: number): void {
+    const entry: CacheEntry<any> = {
+      data: this.cloneData(data),
+      expiry: Date.now() + ttlMs
+    };
+    this.memoryCache.set(key, entry);
+    try {
+      sessionStorage.setItem(`agro_cache_${key}`, JSON.stringify(entry));
+    } catch {
+      // Ignorer si quota storage plein
+    }
+  }
+
+  private restoreCacheFromStorage(): void {
+    try {
+      const now = Date.now();
+      for (let i = 0; i < sessionStorage.length; i++) {
+        const key = sessionStorage.key(i);
+        if (key && key.startsWith('agro_cache_')) {
+          const raw = sessionStorage.getItem(key);
+          if (raw) {
+            const entry = JSON.parse(raw);
+            if (entry && entry.expiry > now) {
+              const cacheKey = key.replace('agro_cache_', '');
+              this.memoryCache.set(cacheKey, entry);
+            }
+          }
+        }
+      }
+    } catch {
+      // Ignorer
+    }
+  }
+
   invalidateCacheForEndpoint(endpoint: string): void {
-    // Extrait le préfixe principal (ex: /production, /stocks, /commercial, /finance)
     const segments = endpoint.split('/').filter(Boolean);
     const prefix = segments.length > 0 ? `/${segments[0]}` : endpoint;
 
-    for (const key of this.cache.keys()) {
+    for (const key of this.memoryCache.keys()) {
       if (key.startsWith(prefix)) {
-        this.cache.delete(key);
+        this.memoryCache.delete(key);
+        try {
+          sessionStorage.removeItem(`agro_cache_${key}`);
+        } catch {}
       }
     }
   }
 
-  /**
-   * Vider complètement le cache
-   */
   clearAllCache(): void {
-    this.cache.clear();
+    this.memoryCache.clear();
     this.inFlightRequests.clear();
+    try {
+      Object.keys(sessionStorage)
+        .filter(k => k.startsWith('agro_cache_'))
+        .forEach(k => sessionStorage.removeItem(k));
+    } catch {}
   }
 
   private generateCacheKey(endpoint: string, params?: any): string {
