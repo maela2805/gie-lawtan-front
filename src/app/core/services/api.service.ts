@@ -14,17 +14,19 @@ interface CacheEntry<T> {
 export class ApiService {
   private apiUrl = environment.apiUrl;
   
-  // Cache mémoire
+  // Cache mémoire haute performance
   private memoryCache = new Map<string, CacheEntry<any>>();
   
   // Requêtes en cours pour éviter les appels en double simultanés (déduplication)
   private inFlightRequests = new Map<string, Observable<any>>();
   
-  // TTL par défaut : 2 minutes (120 000 ms)
-  private defaultTtlMs = 120000;
+  // TTL étendu à 5 minutes pour une fluidité maximale
+  private defaultTtlMs = 300000;
 
   constructor(private http: HttpClient) {
     this.restoreCacheFromStorage();
+    // Préchauffage automatique en arrière-plan
+    setTimeout(() => this.preloadEssentialData(), 100);
   }
 
   /**

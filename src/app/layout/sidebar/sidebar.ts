@@ -1,6 +1,7 @@
 import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule, Router } from '@angular/router';
+import { ApiService } from '../../core/services/api.service';
 import { 
   LucideAngularModule, 
   LUCIDE_ICONS,
@@ -157,9 +158,35 @@ export class Sidebar {
     },
   ];
 
-  constructor(public router: Router) {}
+  constructor(public router: Router, private api: ApiService) {}
 
   togglePaddy() {
     this.isPaddyOpen = !this.isPaddyOpen;
+  }
+
+  preload(route: string) {
+    const routeMap: Record<string, string[]> = {
+      '/stocks/produits-finis': ['/stocks/articles', '/commercial/clients'],
+      '/stocks/paddy': ['/stocks/paddy', '/commercial/clients'],
+      '/stocks/bottes': ['/stocks/articles'],
+      '/stocks/mouvements': ['/stocks/mouvements'],
+      '/production/of': ['/production/ofs', '/commercial/clients'],
+      '/production/cloture': ['/production/ofs'],
+      '/production/tableau-bord': ['/production/ofs'],
+      '/parc/machines': ['/parc/machines'],
+      '/parc/prestations': ['/parc/prestations'],
+      '/parc/maintenance': ['/parc/maintenance'],
+      '/ventes/clients': ['/commercial/clients'],
+      '/ventes/factures': ['/commercial/factures'],
+      '/rh/employes': ['/rh/employes'],
+      '/rh/pointages': ['/rh/pointages'],
+      '/finance/caisse': ['/finance/caisse/resume', '/finance/caisse/operations'],
+      '/achats/fournisseurs': ['/achats/fournisseurs'],
+      '/achats/commandes': ['/achats/commandes']
+    };
+    const endpoints = routeMap[route];
+    if (endpoints) {
+      endpoints.forEach(ep => this.api.get(ep).subscribe({ next: () => {}, error: () => {} }));
+    }
   }
 }

@@ -50,6 +50,7 @@
                 <a
                   routerLink="/stocks/paddy"
                   [queryParams]="{ tab: 'clients' }"
+                  (mouseenter)="preload('/stocks/paddy')"
                   routerLinkActive="!bg-[#0e4323] !text-white !font-bold !border !border-[#22c55e]"
                   [routerLinkActiveOptions]="{ exact: false }"
                   class="flex items-center gap-2 rounded-md px-2.5 py-1.5 text-[11.5px] text-[#c2dfcd] hover:bg-[#0d3b1f] hover:text-white transition-colors cursor-pointer border border-transparent"
@@ -60,6 +61,7 @@
                 <a
                   routerLink="/stocks/paddy"
                   [queryParams]="{ tab: 'lawtan' }"
+                  (mouseenter)="preload('/stocks/paddy')"
                   routerLinkActive="!bg-[#0e4323] !text-white !font-bold !border !border-[#22c55e]"
                   [routerLinkActiveOptions]="{ exact: false }"
                   class="flex items-center gap-2 rounded-md px-2.5 py-1.5 text-[11.5px] text-[#c2dfcd] hover:bg-[#0d3b1f] hover:text-white transition-colors cursor-pointer border border-transparent"
@@ -78,6 +80,7 @@
             <li>
               <a
                 [routerLink]="item.to"
+                (mouseenter)="preload(item.to)"
                 routerLinkActive="!bg-[#0e4323] !text-white !font-bold !border !border-[#22c55e] shadow-xs active-nav-link"
                 [routerLinkActiveOptions]="{exact: item.to === '/'}"
                 class="group flex items-center gap-2.5 rounded-lg px-3 py-2 text-xs font-medium text-[#c2dfcd] transition-colors hover:bg-[#0d3b1f] hover:text-white cursor-pointer border border-transparent"
