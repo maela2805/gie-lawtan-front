@@ -2,12 +2,22 @@ import { Component, EventEmitter, Output } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { AuthService } from '../../core/auth/auth';
-import { LucideAngularModule, Menu, Bell, UserRound, LogOut, Sparkles, ShieldCheck } from 'lucide-angular';
+import { LucideAngularModule, LUCIDE_ICONS, LucideIconProvider, Menu, Bell, UserRound, LogOut, Sparkles, ShieldCheck } from 'lucide-angular';
 
 @Component({
   selector: 'app-header',
   standalone: true,
-  imports: [CommonModule, LucideAngularModule],
+  imports: [
+    CommonModule, 
+    LucideAngularModule
+  ],
+  providers: [
+    {
+      provide: LUCIDE_ICONS,
+      multi: true,
+      useValue: new LucideIconProvider({ Menu, Bell, UserRound, LogOut, Sparkles, ShieldCheck })
+    }
+  ],
   templateUrl: './header.html',
   styleUrl: './header.scss',
 })

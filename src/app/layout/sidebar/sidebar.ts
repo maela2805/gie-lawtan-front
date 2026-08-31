@@ -3,6 +3,8 @@ import { CommonModule } from '@angular/common';
 import { RouterModule, Router } from '@angular/router';
 import { 
   LucideAngularModule, 
+  LUCIDE_ICONS,
+  LucideIconProvider,
   LayoutDashboard, 
   ShoppingCart, 
   Truck, 
@@ -36,6 +38,38 @@ import {
     CommonModule, 
     RouterModule, 
     LucideAngularModule
+  ],
+  providers: [
+    {
+      provide: LUCIDE_ICONS,
+      multi: true,
+      useValue: new LucideIconProvider({
+        LayoutDashboard, 
+        ShoppingCart, 
+        Truck, 
+        Factory, 
+        Wheat, 
+        Boxes, 
+        Users, 
+        FileText, 
+        Tags, 
+        Tractor, 
+        CalendarDays, 
+        ClipboardList, 
+        Wrench, 
+        Wallet, 
+        BarChart3, 
+        HardHat, 
+        FileClock, 
+        History, 
+        Settings, 
+        Leaf, 
+        ChevronDown, 
+        ChevronRight, 
+        Plus, 
+        Minus 
+      })
+    }
   ],
   templateUrl: './sidebar.html',
   styleUrl: './sidebar.scss',
