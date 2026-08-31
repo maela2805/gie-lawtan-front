@@ -60,21 +60,21 @@ export class Cloture implements OnInit {
     justificationEcart: '',
     entrepotDestination: 'Dépôt principal',
 
-    // 4 Produits principaux
+    // 4 Produits principaux (Sacs de 25kg)
     rizEntierSacs: 160,
-    rizEntierKg: 8000,
+    rizEntierKg: 4000,
     prixUnitaireEntier: 380,
 
     rizIntermediaireSacs: 32,
-    rizIntermediaireKg: 1600,
+    rizIntermediaireKg: 800,
     prixUnitaireIntermediaire: 360,
 
     rizBriseSacs: 16,
-    rizBriseKg: 800,
+    rizBriseKg: 400,
     prixUnitaireBrise: 320,
 
     fineBrisureSacs: 10,
-    fineBrisureKg: 480,
+    fineBrisureKg: 250,
     prixUnitaireFine: 260,
 
     // 2 Sous-produits
@@ -132,26 +132,31 @@ export class Cloture implements OnInit {
     const sacsPrev = ofItem.nombreSacsPrevisionnel || ofItem.nombreSacs || 200;
     const paddyApprox = sacsPrev * 80;
 
+    const entierKg = Math.round(paddyApprox * 0.50);
+    const interKg = Math.round(paddyApprox * 0.10);
+    const briseKg = Math.round(paddyApprox * 0.05);
+    const fineKg = Math.round(paddyApprox * 0.03);
+
     this.clotureForm = {
       nombreSacsReels: sacsPrev,
       paddyConsomme: paddyApprox,
       justificationEcart: '',
       entrepotDestination: 'Dépôt principal',
 
-      rizEntierSacs: Math.round(sacsPrev * 0.8),
-      rizEntierKg: Math.round(paddyApprox * 0.50),
+      rizEntierSacs: Math.round(entierKg / 25),
+      rizEntierKg: entierKg,
       prixUnitaireEntier: 380,
 
-      rizIntermediaireSacs: Math.round(sacsPrev * 0.16),
-      rizIntermediaireKg: Math.round(paddyApprox * 0.10),
+      rizIntermediaireSacs: Math.round(interKg / 25),
+      rizIntermediaireKg: interKg,
       prixUnitaireIntermediaire: 360,
 
-      rizBriseSacs: Math.round(sacsPrev * 0.08),
-      rizBriseKg: Math.round(paddyApprox * 0.05),
+      rizBriseSacs: Math.round(briseKg / 25),
+      rizBriseKg: briseKg,
       prixUnitaireBrise: 320,
 
-      fineBrisureSacs: Math.round(sacsPrev * 0.05),
-      fineBrisureKg: Math.round(paddyApprox * 0.03),
+      fineBrisureSacs: Math.round(fineKg / 25),
+      fineBrisureKg: fineKg,
       prixUnitaireFine: 260,
 
       sonDeRizSacs: Math.round(sacsPrev * 0.30),
