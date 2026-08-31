@@ -34,6 +34,9 @@ import {
 @Component({
   selector: 'app-sidebar',
   standalone: true,
+  host: {
+    class: 'block h-full w-full'
+  },
   imports: [
     CommonModule, 
     RouterModule, 
