@@ -87,69 +87,69 @@ export class Sidebar {
     {
       titre: 'Pilotage',
       items: [
-        { to: '/', label: 'Tableau de bord', icon: 'layout-dashboard' },
+        { to: '/', label: 'Tableau de bord', emoji: '📊' },
       ],
     },
     {
       titre: 'Stocks',
       hasPaddyDropdown: true,
       items: [
-        { to: '/stocks/produits-finis', label: 'Produits Finis', icon: 'boxes' },
-        { to: '/stocks/bottes', label: 'Bottes de Paille', icon: 'boxes' },
-        { to: '/stocks/mouvements', label: 'Mouvements', icon: 'history' },
+        { to: '/stocks/produits-finis', label: 'Produits Finis', emoji: '📦' },
+        { to: '/stocks/bottes', label: 'Bottes de Paille', emoji: '🌾' },
+        { to: '/stocks/mouvements', label: 'Mouvements', emoji: '🔄' },
       ],
     },
     {
       titre: 'Production',
       items: [
-        { to: '/production/of', label: 'Ordres de Fabrication', icon: 'factory' },
-        { to: '/production/cloture', label: 'Clôture & Rendements', icon: 'clipboard-list' },
-        { to: '/production/bottes', label: 'Pressage Bottes', icon: 'tractor' },
-        { to: '/production/tableau-bord', label: 'Suivi Production', icon: 'bar-chart-3' },
+        { to: '/production/of', label: 'Ordres de Fabrication', emoji: '⚙️' },
+        { to: '/production/cloture', label: 'Clôture & Rendements', emoji: '📋' },
+        { to: '/production/bottes', label: 'Pressage Bottes', emoji: '🚜' },
+        { to: '/production/tableau-bord', label: 'Suivi Production', emoji: '📈' },
       ],
     },
     {
       titre: 'Parc matériel & Prestations',
       items: [
-        { to: '/parc/machines', label: 'Machines', icon: 'tractor' },
-        { to: '/parc/prestations', label: "Ordres d'Intervention", icon: 'calendar-days' },
-        { to: '/parc/maintenance', label: 'Maintenance', icon: 'wrench' },
+        { to: '/parc/machines', label: 'Machines', emoji: '🚜' },
+        { to: '/parc/prestations', label: "Ordres d'Intervention", emoji: '📅' },
+        { to: '/parc/maintenance', label: 'Maintenance', emoji: '🔧' },
       ],
     },
     {
       titre: 'Commercial',
       items: [
-        { to: '/ventes/clients', label: 'Clients', icon: 'users' },
-        { to: '/ventes/devis', label: 'Devis', icon: 'file-text' },
-        { to: '/ventes/factures', label: 'Factures', icon: 'file-text' },
+        { to: '/ventes/clients', label: 'Clients', emoji: '👥' },
+        { to: '/ventes/devis', label: 'Devis', emoji: '📝' },
+        { to: '/ventes/factures', label: 'Factures', emoji: '📄' },
       ],
     },
     {
       titre: 'Ressources Humaines',
       items: [
-        { to: '/rh/employes', label: 'Employés', icon: 'hard-hat' },
-        { to: '/rh/pointages', label: 'Pointages Journaliers', icon: 'file-clock' },
-        { to: '/rh/tableau-bord', label: 'Tableau de Bord RH', icon: 'bar-chart-3' },
+        { to: '/rh/employes', label: 'Employés', emoji: '👷' },
+        { to: '/rh/pointages', label: 'Pointages Journaliers', emoji: '⏱️' },
+        { to: '/rh/tableau-bord', label: 'Tableau de Bord RH', emoji: '📊' },
       ],
     },
     {
       titre: 'Finance',
       items: [
-        { to: '/finance/caisse', label: 'Caisse & Banque', icon: 'wallet' },
-        { to: '/finance/rentabilite', label: 'Rentabilité', icon: 'bar-chart-3' },
+        { to: '/finance/caisse', label: 'Caisse & Banque', emoji: '💰' },
+        { to: '/finance/rentabilite', label: 'Rentabilité', emoji: '📈' },
       ],
     },
     {
       titre: 'Achats & Approvisionnements',
       items: [
-        { to: '/achats/fournisseurs', label: 'Fournisseurs', icon: 'truck' },
-        { to: '/achats/commandes', label: 'Bons de Commande', icon: 'shopping-cart' },
+        { to: '/achats/fournisseurs', label: 'Fournisseurs', emoji: '🚚' },
+        { to: '/achats/commandes', label: 'Bons de Commande', emoji: '🛒' },
       ],
     },
     {
       titre: 'Configuration',
       items: [
-        { to: '/parametres', label: 'Paramètres', icon: 'settings' },
+        { to: '/parametres', label: 'Paramètres', emoji: '⚙️' },
       ],
     },
   ];

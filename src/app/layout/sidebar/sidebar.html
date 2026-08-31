@@ -2,7 +2,10 @@
   <!-- Brand Logo Header -->
   <div class="flex items-center gap-3 border-b border-[#0a3d1d] px-5 py-4 bg-[#04200f]/60">
     <div class="grid size-9 shrink-0 place-items-center rounded-lg bg-gradient-to-tr from-emerald-600 to-green-500 text-white shadow-sm">
-      <lucide-icon name="leaf" class="size-5"></lucide-icon>
+      <svg class="size-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.18 2 8 0 5.5-4.78 10-10 10Z"/>
+        <path d="M2 21c0-3 1.85-5.36 5.08-6C9.5 14.52 12 13 13 12"/>
+      </svg>
     </div>
     <div class="min-w-0">
       <div class="flex items-center gap-1.5">
@@ -31,13 +34,13 @@
               [class.bg-[#0a351a]]="isPaddyOpen"
             >
               <div class="flex items-center gap-2.5">
-                <lucide-icon name="wheat" class="size-4 shrink-0 text-[#86efac] group-hover:text-[#22c55e] transition-colors"></lucide-icon>
+                <span class="text-base leading-none">🌾</span>
                 <span class="font-bold text-white">Stock Paddy</span>
               </div>
               
               <!-- Badge Icône [+] / [-] interactif -->
-              <span class="grid size-5 place-items-center rounded bg-[#0e4323] text-[#86efac] group-hover:bg-[#22c55e] group-hover:text-[#062914] transition-colors shadow-xs">
-                <lucide-icon [name]="isPaddyOpen ? 'minus' : 'plus'" class="size-3 stroke-[2.5]"></lucide-icon>
+              <span class="grid size-5 place-items-center rounded bg-[#0e4323] text-[#86efac] group-hover:bg-[#22c55e] group-hover:text-[#062914] transition-colors shadow-xs font-bold text-xs">
+                {{ isPaddyOpen ? '−' : '+' }}
               </span>
             </button>
 
@@ -79,7 +82,7 @@
                 [routerLinkActiveOptions]="{exact: item.to === '/'}"
                 class="group flex items-center gap-2.5 rounded-lg px-3 py-2 text-xs font-medium text-[#c2dfcd] transition-colors hover:bg-[#0d3b1f] hover:text-white cursor-pointer border border-transparent"
               >
-                <lucide-icon [name]="item.icon" class="size-4 shrink-0 text-[#86efac] group-hover:text-[#22c55e] transition-colors"></lucide-icon>
+                <span class="text-sm shrink-0 leading-none">{{ item.emoji }}</span>
                 <span class="truncate">{{ item.label }}</span>
               </a>
             </li>
